@@ -27,6 +27,14 @@ from scripts.autoconf import AutoConf
 from scripts.automake import AutoMake
 from scripts.libtool import LibTool
 from scripts.x264 import x264
+from scripts.glew import Glew
+from scripts.portaudio import PortAudio
+from scripts.sndfile import SndFile
+from scripts.pkgconfig import PkgConfig
+from scripts.glib import Glib
+from scripts.ffi import FFI
+from scripts.gettext import GetText
+from scripts.iconv import Iconv
 
 from colorama import init, Fore, Back, Style
 init()
@@ -39,10 +47,10 @@ Base.base_dir = os.path.dirname(os.path.realpath(__file__)) +"/"
 Base.download_dir = "./downloads"
 Base.script_dir = "./scripts"
 Base.tools_dir = "./tools"
-Base.compiler = Base.COMPILER_MAC_GCC
+Base.compiler = Base.COMPILER_MAC_CLANG
 Base.arch = Base.ARCH_M32
 Base.install_prefix = Base.base_dir +"build"
-Base.deploy_prefix = Base.base_dir +"deploy"
+Base.deploy_prefix = Base.base_dir +"../../extern/"
 Base.build_type  = Base.BUILD_TYPE_RELEASE
 
 ins_glfw = GLFW()
@@ -67,11 +75,21 @@ ins_autoconf = AutoConf()
 ins_automake = AutoMake()
 ins_libtool = LibTool()
 ins_x264 = x264()
+ins_glew = Glew()
+ins_portaudio = PortAudio()
+ins_sndfile = SndFile()
+ins_pkgconfig = PkgConfig()
+ins_glib = Glib()
+ins_ffi = FFI()
+ins_gettext = GetText()
+ins_iconv = Iconv()
 
 installers = [ins_glfw, ins_jansson, ins_jpeg, ins_tiff, ins_png, ins_zlib, 
               ins_openssl, ins_lamemp3, ins_yasm, ins_uv, ins_curl, ins_pcre,
               ins_ogg, ins_vorbis, ins_theora, ins_speex, ins_mysqlc,
-              ins_freetype, ins_autoconf, ins_automake, ins_libtool, ins_x264]
+              ins_freetype, ins_autoconf, ins_automake, ins_libtool, ins_x264,
+              ins_glew, ins_portaudio, ins_sndfile, ins_pkgconfig, ins_glib, ins_ffi,
+              ins_gettext, ins_iconv]
 
 #installers.sort(key=lambda i:i.name)
 
@@ -128,12 +146,16 @@ for opt, arg in opts:
         elif arg == "vs2012":
             Base.compiler = Base.COMPILER_WIN_MSVC2012
         elif arg == "gcc":
-            oss = rb_get_os_shortname()
-            if oss == "mac":
+            if rb_is_mac():
                 Base.compiler = Base.COMPILER_MAC_GCC
+        elif arg == "clang":
+            if rb_is_mac():
+                Base.compiler = Base.COMPILER_MAC_CLANG
         else:
             rb_red("No compiler found.\n")
             sys.exit(2)
+
+
 
 
 if task == None:
@@ -144,6 +166,17 @@ if task == TASK_BUILD:
     if not installer:
         print "No installer found"
         sys.exit(2)
+
+    # build dependencies
+    rs = []
+    rb_solve_dependencies(installer, installers, rs)
+    rs = rs[::-1]
+    for r in rs:
+        if not r.is_build():
+            rb_green_ln("Found dependency: "+r.name)
+            r.build()
+            r.deploy()
+
     installer.build()
     installer.deploy()
 

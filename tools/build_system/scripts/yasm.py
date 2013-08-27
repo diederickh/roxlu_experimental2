@@ -19,7 +19,10 @@ class Yasm(Base):
         if rb_is_mac():
             rb_build_with_autotools(self)
 
-    def deploy():
+    def is_build(self):
+        return rb_install_lib_file_exists("libyasm.a")
+
+    def deploy(self):
         rb_red_ln("No deploy for yasm")
 
 

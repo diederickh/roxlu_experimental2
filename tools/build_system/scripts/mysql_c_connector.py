@@ -18,7 +18,7 @@ class MySQLCConnector(Base):
                                 "mysql-connector-c-" +self.version +"-src")
     def build(self):
 
-        if rb_is_macgcc():
+        if rb_is_mac_gcc():
             dd = rb_get_download_dir(self)
             rb_cmake_configure(self)
             rb_cmake_build(self)
@@ -29,6 +29,6 @@ class MySQLCConnector(Base):
     def deploy(self):
         if rb_is_msvc():
             rb_red_ln("@todo mysql-connector-c for win")
-        elif rb_is_macgcc():
+        elif rb_is_mac_gcc():
             rb_red_ln("@todo working on it :")
         

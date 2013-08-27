@@ -17,7 +17,7 @@ class Ogg(Base):
                                 "libogg-" +self.version +".tar.gz", 
                                 "libogg-" +self.version)
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac():
             rb_build_with_autotools(self);
         elif rb_is_msvc():
 
@@ -43,6 +43,8 @@ class Ogg(Base):
             )
             rb_execute_shell_commands(self, cmd)
 
+    def is_build(self):
+        return rb_install_lib_file_exists("libogg.a")
 
     def deploy(self):
         if rb_is_msvc():

@@ -8,7 +8,7 @@ class Vorbis(Base):
         self.version = "1.3.3"
         self.compilers = [Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012, Base.COMPILER_MAC_GCC]
         self.arch = [Base.ARCH_M32, Base.ARCH_M64]
-        self.dependencies = []
+        self.dependencies = ["ogg"]
         
     def download(self): 
         rb_download_and_extract(self, 
@@ -16,7 +16,7 @@ class Vorbis(Base):
                                 "libvorbis-" +self.version +".tar.gz", 
                                 "libvorbis-" +self.version)
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac():
             rb_build_with_autotools(self)
         elif rb_is_msvc():
 
@@ -34,6 +34,9 @@ class Vorbis(Base):
 
             rb_execute_shell_commands(self, cmd)
 
+    def is_build(self):
+        return rb_install_lib_file_exists("libvorbis.a")
+                
     def deploy(self):
         if rb_is_msvc():
             sd = "VS2010" if rb_is_vs2010() else "VS2012"
@@ -42,7 +45,7 @@ class Vorbis(Base):
             rb_deploy_lib(dd +"libvorbis.lib")
             rb_deploy_headers(dir = rb_get_download_dir(self) +"/include/vorbis", subdir =  "vorbis")
 
-        elif rb_is_macgcc():
+        elif rb_is_mac():
             rb_deploy_lib(rb_install_get_lib_file("libvorbis.a"))
             rb_deploy_lib(rb_install_get_lib_file("libvorbisenc.a"))
             rb_deploy_lib(rb_install_get_lib_file("libvorbisfile.a"))

@@ -15,14 +15,8 @@ class GLFW(Base):
         rb_git_clone(self, "git@github.com:glfw/glfw.git", self.version)
 
     def build(self):
-
-        if Base.compiler == Base.COMPILER_MAC_GCC \
-           or Base.compiler == Base.COMPILER_WIN_MSVC2012 \
-           or Base.compiler == Base.COMPILER_WIN_MSVC2010:
-
-            rb_cmake_configure(self)
-            rb_cmake_build(self)
-
+        rb_cmake_configure(self)
+        rb_cmake_build(self)
 
     def deploy(self):
          if rb_is_msvc():
@@ -31,6 +25,9 @@ class GLFW(Base):
              rb_deploy_lib(nd +"lib/glfw3.lib")
              rb_deploy_create_headers_dir("GLFW")
              rb_deploy_headers(nd +"include/GLFW/", ["glfw3.h", "glfw3native.h"], "GLFW")
+         elif rb_is_mac():
+             rb_deploy_lib(rb_install_get_lib_file("libglfw3.a"))
+             rb_deploy_headers(dir = rb_install_get_include_dir() +"GLFW", subdir = "GLFW")
          
                 
             

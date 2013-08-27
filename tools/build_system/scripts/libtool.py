@@ -18,7 +18,7 @@ class LibTool(Base):
                                 "libtool-" +self.version)
 
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac_gcc():
             rb_build_with_autotools(self)
         elif rb_is_msvc():
             rb_red_ln("libtool is only for unices")
@@ -27,7 +27,7 @@ class LibTool(Base):
     def deploy(self):
         if rb_is_msvc():
             rb_red_ln("libtool is only for unices")
-        elif rb_is_macgcc():
+        elif rb_is_mac_gcc():
             rb_red_ln("we do not implement deploy for libtool; is run from build dir")
 
                 

@@ -164,6 +164,7 @@ endmacro(roxlu_add_source_file)
 
 macro(roxlu_add_include_dir dir)
   include_directories(${dir})
+  list(APPEND roxlu_include_dirs)
 endmacro(roxlu_add_include_dir)
 
 macro(roxlu_add_extern_include_dir dir)
@@ -431,35 +432,17 @@ endmacro()
 # R O X L U   
 # --------------------------------------------------------------------------------
 
-#option(ROXLU_32BIT "Build 32bit version" OFF)
-#option(ROXLU_64BIT "Build 64bit version" ON)
-
 set(roxlu_cmake_dir ${CMAKE_CURRENT_LIST_DIR})
 set(roxlu_base_dir ${CMAKE_CURRENT_LIST_DIR}/../../../)
 set(roxlu_src_dir ${roxlu_base_dir}lib/src/roxlu/)
 set(roxlu_include_dir ${roxlu_base_dir}lib/include/)
 set(roxlu_addons_dir ${roxlu_base_dir}/addons/)
-set(roxlu_extern_src_dir ${roxlu_base_dir}/extern/src/)
-set(roxlu_extern_include_dir ${roxlu_base_dir}/extern/include)
-set(roxlu_extern_src_dir ${roxlu_base_dir}/extern/src)
-
-# get roxlu sources
-set(roxlu_3d_sources
-#  ${roxlu_src_dir}/3d/Camera.cpp
-#  ${roxlu_src_dir}/3d/ArcBall.cpp
-#  ${roxlu_src_dir}/3d/EasyCam.cpp
-)
 
 set(roxlu_core_sources 
   ${roxlu_src_dir}/core/Utils.cpp
   ${roxlu_src_dir}/core/Log.cpp
   ${roxlu_src_dir}/core/StringUtil.cpp
 )
-
-set(roxlu_experimental_sources 
-#  ${roxlu_src_dir}/experimental/BitmapFont.cpp
-)
-
 set(roxlu_io_sources
   ${roxlu_src_dir}/io/Buffer.cpp
   ${roxlu_src_dir}/io/RingBuffer.cpp
@@ -476,37 +459,30 @@ set(roxlu_math_sources
   ${roxlu_src_dir}/math/Noise.cpp
 )
 
-set(roxlu_opengl_sources 
-#  ${roxlu_src_dir}/opengl/FPS.cpp
-#  ${roxlu_src_dir}/opengl/Shader.cpp
-)
-
 set(roxlu_lib_source_files
-  ${roxlu_3d_sources}
   ${roxlu_core_sources}
-  ${roxlu_experimental_sources}
-  ${roxlu_external_sources_cpp}
   ${roxlu_io_sources}
   ${roxlu_math_sources}
-  ${roxlu_opengl_sources}
-  ${roxlu_extern_sources_c}
-)
-
+  )
+ 
 source_group("src\\roxlu\\3d" FILES ${roxlu_3d_sources})
 source_group("src\\roxlu\\core" FILES ${roxlu_core_sources})
-source_group("src\\roxlu\\experimental" FILES ${roxlu_experimental_sources})
-source_group("src\\roxlu\\external" FILES ${roxlu_external_sources_c} ${roxlu_external_source_cpp})
 source_group("src\\roxlu\\io" FILES ${roxlu_io_sources})
 source_group("src\\roxlu\\math" FILES ${roxlu_math_sources})
-source_group("src\\roxlu\\opengl" FILES ${roxlu_opengl_sources})
-source_group("src\\extern" FILES ${roxlu_extern_sources_c})
+
+roxlu_add_include_dir(${roxlu_include_dir})
+
+# --------------------------------------------------------------------------------
+# P L A T F O R M   A N D   T H I R D   P A R T Y   L I B S 
+# --------------------------------------------------------------------------------
 
 # get roxlu include dir
-set(roxlu_include_dirs 
-  ${roxlu_include_dirs}
-  ${roxlu_include_dir}
-  ${roxlu_extern_include_dir}
-)
+#roxlu_add_include_dir(${roxlu_include_dir})
+#set(roxlu_include_dirs 
+#  ${roxlu_include_dirs}
+#  ${roxlu_include_dir}
+#  ${roxlu_extern_include_dir}
+#)
 
 if(NOT ROXLU_32BIT AND NOT ROXLU_64BIT)
   set(ROXLU_64BIT ON)
@@ -527,46 +503,72 @@ if(ROXLU_64BIT)
   set(roxlu_bits "64")
 endif(ROXLU_64BIT)
 
-
 if(APPLE)
   set(roxlu_platform "mac") 
-  set(roxlu_platform_lib_dir "gcc/static/")
-  set(roxlu_platform_dylib_dir "gcc/dynamic/")
-  set(ROXLU_PLATFORM_MAC TRUE)
+#  set(roxlu_platform_lib_dir "gcc/static/")
+#  set(roxlu_platform_dylib_dir "gcc/dynamic/")
+#  set(ROXLU_PLATFORM_MAC TRUE)
 endif(APPLE)
 
 if(WIN32) 
-  set(ROXLU_WIN_LIB_MT FALSE)
-  set(ROXLU_WIN_LIB_MD TRUE)
+#  set(ROXLU_WIN_LIB_MT FALSE)
+#  set(ROXLU_WIN_LIB_MD TRUE)
 
   set(roxlu_platform "win")
 
-  if(ROXLU_WIN_LIB_MT)
-    set(roxlu_platform_lib_dir "vs2010/MT/")
-  else()
-    set(roxlu_platform_lib_dir "vs2010/MD/")
-  endif()
+#   if(ROXLU_WIN_LIB_MT)
+#     set(roxlu_platform_lib_dir "vs2010/MT/")
+#   else()
+#     set(roxlu_platform_lib_dir "vs2010/MD/")
+#   endif()
 
   set(ROXLU_PLATFORM_WIN TRUE)
 
-  list(APPEND CMAKE_MODULE_PATH "${roxlu_base_dir}/lib/build/cmake/win/modules/")
+#  list(APPEND CMAKE_MODULE_PATH "${roxlu_base_dir}/lib/build/cmake/win/modules/")
 
 endif(WIN32)
 
 if(UNIX AND NOT APPLE)
   set(roxlu_platform "linux")
-  set(roxlu_platform_lib_dir "gcc/static/")
-  set(roxlu_platform_dylib_dir "gcc/dynamic/")
+#   set(roxlu_platform_lib_dir "gcc/static/")
+#   set(roxlu_platform_dylib_dir "gcc/dynamic/")
   set(ROXLU_PLATFORM_LINUX TRUE)
 endif(UNIX AND NOT APPLE)
 
 if(ROXLU_32BIT)
   set(CMAKE_OSX_ARCHITECTURES "i386")
+  set(roxlu_arch "i386")
 endif(ROXLU_32BIT)
 
 if(ROXLU_64BIT)
   set(CMAKE_OSX_ARCHITECTURES "x86_64")
+  set(roxlu_arch "x86_64")
 endif(ROXLU_64BIT)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  set(roxlu_compiler "clang")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(roxlu_compiler "gcc")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  if(MSVC10)
+    set(roxlu_compiler "vs2010")
+  else()
+    set(roxlu_compiler "vs2012")
+  endif()
+endif()
+
+set(roxlu_triplet "${roxlu_platform}-${roxlu_compiler}-${roxlu_arch}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(roxlu_triplet "${roxlu_triplet}d")
+endif()
+
+set(roxlu_extern_base_dir "${roxlu_base_dir}/extern/${roxlu_triplet}/")
+set(roxlu_extern_include_dir ${roxlu_extern_base_dir}include/)
+set(roxlu_extern_src_dir  ${roxlu_extern_base_dir}src/)
+set(roxlu_extern_lib_dir  ${roxlu_extern_base_dir}lib/)
+
+message(">>>> ${roxlu_extern_include_dir}")
+roxlu_add_include_dir(${roxlu_extern_include_dir})
 
 
 if(NOT ROXLU_PLATFORM_WIN)
@@ -577,47 +579,47 @@ add_definitions(
 )
 endif(NOT ROXLU_PLATFORM_WIN)
 
-set(roxlu_extern_lib_dir ${roxlu_base_dir}/extern/lib/${roxlu_platform}/${roxlu_platform_lib_dir}${roxlu_bits}/)
-set(roxlu_extern_dylib_dir ${roxlu_base_dir}/extern/lib/${roxlu_platform}/${roxlu_platform_dylib_dir}${roxlu_bits}/)
-set(roxlu_extern_lib_debug_dir ${roxlu_base_dir}/extern/lib/${roxlu_platform}/${roxlu_platform_lib_dir}${roxlu_bits}d/)
-set(roxlu_extern_bin_dir ${roxlu_base_dir}/extern/bin/${roxlu_platform}/${roxlu_platform_lib_dir}${roxlu_bits}/)
-set(roxlu_extern_bin_debug_dir ${roxlu_base_dir}/extern/bin/${roxlu_platform}/${roxlu_platform_lib_dir}${roxlu_bits}d/)
-
-set(roxlu_include_dirs
-  ${roxlu_include_dirs}
-  ${roxlu_extern_lib_dir}/curl/ 
-)
+# set(roxlu_extern_lib_dir ${roxlu_base_dir}/extern/lib/${roxlu_platform}/${roxlu_platform_lib_dir}${roxlu_bits}/)
+# set(roxlu_extern_dylib_dir ${roxlu_base_dir}/extern/lib/${roxlu_platform}/${roxlu_platform_dylib_dir}${roxlu_bits}/)
+# set(roxlu_extern_lib_debug_dir ${roxlu_base_dir}/extern/lib/${roxlu_platform}/${roxlu_platform_lib_dir}${roxlu_bits}d/)
+# set(roxlu_extern_bin_dir ${roxlu_base_dir}/extern/bin/${roxlu_platform}/${roxlu_platform_lib_dir}${roxlu_bits}/)
+# set(roxlu_extern_bin_debug_dir ${roxlu_base_dir}/extern/bin/${roxlu_platform}/${roxlu_platform_lib_dir}${roxlu_bits}d/)
+# 
+# set(roxlu_include_dirs
+#   ${roxlu_include_dirs}
+#   ${roxlu_extern_lib_dir}/curl/ 
+# )
 
 
 # - On windows we don't have inttypes.h so we add a include dir
 # - We also set the runtime library for windows. This is kind of experimental 
 if(ROXLU_PLATFORM_WIN)
-  if(ROXLU_WIN_LIB_MT)
-    set(roxlu_win_runtime "MT") 
-    set(roxlu_win_runtime_project "MT")
-  elseif(ROXLU_WIN_LIB_MD)
-    set(roxlu_win_runtime "MD") 
-    set(roxlu_win_runtime_project "MD")
-    if(CMAKE_BUILD_TYPE STREQUAL Debug)
-      set(roxlu_win_runtime_project "MDd")
-    endif()
-
-  endif()
-
-  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /${roxlu_win_runtime_project}")
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /${roxlu_win_runtime_project}")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /${roxlu_win_runtime_project}")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /${roxlu_win_runtime_project}")
+#   if(ROXLU_WIN_LIB_MT)
+#     set(roxlu_win_runtime "MT") 
+#     set(roxlu_win_runtime_project "MT")
+#   elseif(ROXLU_WIN_LIB_MD)
+#     set(roxlu_win_runtime "MD") 
+#     set(roxlu_win_runtime_project "MD")
+#     if(CMAKE_BUILD_TYPE STREQUAL Debug)
+#       set(roxlu_win_runtime_project "MDd")
+#     endif()
+# 
+#   endif()
+# 
+#   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /${roxlu_win_runtime_project}")
+#   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /${roxlu_win_runtime_project}")
+#   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /${roxlu_win_runtime_project}")
+#   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /${roxlu_win_runtime_project}")
   
-  include_directories(${roxlu_base_dir}/extern/include/msinttypes/)
+#  include_directories(${roxlu_base_dir}/extern/include/msinttypes/)
 
-  add_definitions( "/wd4995 /wd4244 /wd4305 /D_CRT_SECURE_NO_WARNINGS /W3")
+#  add_definitions( "/wd4995 /wd4244 /wd4305 /D_CRT_SECURE_NO_WARNINGS /W3")
   
-  set(roxlu_include_dirs
-    ${roxlu_include_dirs}
-    ${roxlu_extern_lib_dir}/curl/
-    ${roxlu_extern_lib_dir}/msinttypes/
-    )
+#   set(roxlu_include_dirs
+#     ${roxlu_include_dirs}
+#     ${roxlu_extern_lib_dir}/curl/
+#     ${roxlu_extern_lib_dir}/msinttypes/
+#     )
     
 
 endif(ROXLU_PLATFORM_WIN)

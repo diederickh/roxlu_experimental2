@@ -31,13 +31,13 @@
 #  define ROXLU_WITH_OPENGL
 #  define GLEW_STATIC
 #  include <GL/glew.h>
-#  include <GL/glfw3.h>
+#  include <GLFW/glfw3.h>
 
 // TMP - GET NATIVE - TESTING WITH VDPAU ON LINUX, SEE 038
 #if defined(__linux)
 #  define GLFW_EXPOSE_NATIVE_X11
 #  define GLFW_EXPOSE_NATIVE_GLX
-#  include <GL/glfw3native.h>
+#  include <GLFW/glfw3native.h>
 #endif
 // END - GET NATIVE
 
@@ -52,7 +52,7 @@
 #    include <GLXW/glxw.h>       // @todo - test if this is necessary on linux, gives errors on mac
 #  endif
 #define GLFW_INCLUDE_NONE
-#  include <GL/glfw3.h>
+#  include <GLFW/glfw3.h>
 #elif defined(ROXLU_WITH_OPENFRAMEWORKS)
 #  define ROXLU_WITH_OPENGL
 #  include "ofMain.h"

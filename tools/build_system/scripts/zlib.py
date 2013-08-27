@@ -16,7 +16,7 @@ class ZLib(Base):
                                 "zlib-" +self.version +".tar.gz", 
                                 "zlib-" +self.version)
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac():
             if Base.arch == Base.ARCH_M32:
                 cmd = ("cd " +rb_get_download_dir(self),
                        "./configure --prefix='" +rb_install_get_dir() +"' --archs='-arch i386'",
@@ -37,7 +37,13 @@ class ZLib(Base):
             )
             rb_execute_shell_commands(self, cmd)
 
+    def is_build(slef):
+        if rb_is_mac():
+            return rb_install_lib_file_exists("libz.a")
+
     def deploy(self):
+
+
         if rb_is_msvc():
             bd = rb_get_download_dir(self)
             rb_deploy_dll(bd +"zlib1.dll")
@@ -45,6 +51,11 @@ class ZLib(Base):
             rb_deploy_lib(bd +"zdll.lib")
             rb_deploy_header(bd +"zlib.h")
             rb_deploy_header(bd +"zconf.h")
+        else:
+            rb_deploy_lib(rb_install_get_lib_file("libz.a"))
+            rb_deploy_header(rb_install_get_include_file("zlib.h"))
+            rb_deploy_header(rb_install_get_include_file("zconf.h"))
+
         
 
     

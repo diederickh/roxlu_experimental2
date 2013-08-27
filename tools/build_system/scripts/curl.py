@@ -17,7 +17,7 @@ class Curl(Base):
                                 "curl-" +self.version)
 
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac_gcc():
             opt = (
                 "--with-ssl=" +rb_install_get_dir(),
                 "--enable-static=yes",

@@ -17,7 +17,7 @@ class JPEG(Base):
                                 "jpegsrc.v" +self.version +".tar.gz", 
                                 "jpeg-" +self.version)
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac_gcc():
             rb_build_with_autotools(self)
         elif rb_is_msvc():
 

@@ -8,7 +8,7 @@ class Speex(Base):
         self.version = "1.2rc1"
         self.compilers = [Base.COMPILER_MAC_GCC, Base.COMPILER_WIN_MSVC2010] #, Base.COMPILER_WIN_MSVC2012,
         self.arch = [Base.ARCH_M32, Base.ARCH_M64]
-        self.dependencies = []
+        self.dependencies = ["ogg"]
         self.info = "WORK IN PROGRESS"
         
     def download(self): 
@@ -19,7 +19,7 @@ class Speex(Base):
 
 
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac():
             rb_build_with_autotools(self)
         elif rb_is_msvc():
             dd = rb_get_download_dir(self)
@@ -31,6 +31,8 @@ class Speex(Base):
                 )
             rb_execute_shell_commands(self, cmd)
 
+    def is_build(self):
+        return rb_install_lib_file_exists("libspeex.a")
 
     def deploy(self):
         if rb_is_msvc():
@@ -40,10 +42,12 @@ class Speex(Base):
             rb_deploy_lib(dd +"libspeex.lib")
             rb_deploy_headers(dir = rb_get_download_dir(self) +"include/speex", subdir = "speex")
 
-        elif rb_is_macgcc():
+        elif rb_is_mac():
             rb_deploy_lib(rb_install_get_lib_file("libspeex.a"))
             rb_deploy_lib(rb_install_get_lib_file("libspeexdsp.a"))
+            rb_deploy_lib(rb_install_get_lib_file("libspeexdsp.dylib"))
             rb_deploy_lib(rb_install_get_lib_file("libspeexdsp.1.5.0.dylib"))
+            rb_deploy_lib(rb_install_get_lib_file("libspeex.dylib"))
             rb_deploy_lib(rb_install_get_lib_file("libspeex.1.5.0.dylib"))
             rb_deploy_headers(dir = rb_install_get_include_dir() +"speex", subdir = "speex")
 

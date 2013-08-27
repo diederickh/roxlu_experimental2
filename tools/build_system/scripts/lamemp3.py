@@ -17,7 +17,7 @@ class LameMP3(Base):
                                 "lame-" +self.version +".tar.gz", 
                                 "lame-" +self.version)
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac():
             rb_build_with_autotools(self)
         elif rb_is_msvc():
 
@@ -41,7 +41,12 @@ class LameMP3(Base):
             rb_deploy_lib(sd +"libmp3lame.lib")
             rb_deploy_header(id +"lame.h", "lame")
         else:
-            rb_red_ln("Deploy lamemp3 not implemented")
+            rb_deploy_lib(rb_install_get_lib_file("libmp3lame.a"))
+            rb_deploy_lib(rb_install_get_lib_file("libmp3lame.dylib"))
+            rb_deploy_lib(rb_install_get_lib_file("libmp3lame.0.dylib"))
+            rb_deploy_headers(dir = rb_install_get_include_dir() +"lame", subdir = "lame")
+
+
             
 
 

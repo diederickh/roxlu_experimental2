@@ -52,6 +52,12 @@ class Base(object):
     def download(self):
         print "Not implemented"
 
+    def build(self):
+        rb_red_ln("@todo implement build")
+
+    def is_build(self):
+        rb_red_ln("@todo implement build")
+
        
 
 # download a source file into the download dir for the given script
@@ -84,24 +90,40 @@ def rb_get_download_dir(script = None):
 # get the directory where the build scripts are stored; or the build script specific one when a script is given
 def rb_get_script_dir(script = None):
     if script is None:
-        return Base.script_dir
+        return os.path.abspath(Base.script_dir)
     else:
-        return Base.script_dir +"/" +script.name +"/"
+        return os.path.abspath(Base.script_dir +"/" +script.name ) +"/"
+
+# returns a path to a file in a script specific directory
+# the script specificy directory is a dir in "scripts" with the same
+# name as the script name, eg.. scripts/portaudio
+# calling rb_script_get_file(self, "Makefile-x86_64.patch") will return the full path to [somepath]/scripts/portaudio/Makefile-x86_64.patch
+def rb_script_get_file(script, file):
+    return rb_get_script_dir(script) +file;
 
 # return the full path to the download dir for the given script or just to the base download dir
 def rb_get_download_path(script = None):
     if script is None:
-        return Base.base_dir +"/" +Bsse.download_dir
+        return os.path.abspath(Base.base_dir +"/" +Bsse.download_dir)
     else:
-        return Base.base_dir +"/" +Base.download_dir +"/" +script.name +"/"
+        return os.path.abspath(Base.base_dir +"/" +Base.download_dir +"/" +script.name +"/")
 
 
 # extracts and copies the files from the extracted directory into the download dir of a script
 def rb_extract(script, file, extractedDirName = None):
     t = mimetypes.guess_type(rb_get_download_dir(script) +file)
     f = None
+    if t[0] == None:
+        parts = file.split(".")
+        if len(parts) >= 2:
+            ext0 = parts[len(parts)-1]
+            ext1 = parts[len(parts)-1]
+            if ext0 == "tar" and ext1 == "gzip":
+                f = "tar.gz"
+        else:
+            rb_red_len("@todo we need to handle this type")
 
-    if t[0] == "application/x-tar" and t[1] == "gzip":
+    elif t[0] == "application/x-tar" and t[1] == "gzip":
         f = "tar.gz"
     elif t[0] == "application/x-tar" and t[1] == "bzip2":
         f = "tar.bz2"
@@ -199,7 +221,7 @@ def rb_get_compiler_shortname():
         return "vs2010"
     elif Base.compiler == Base.COMPILER_WIN_MSVC2012:
         return "vs2012"
-    elif Base.compiler == Base.COMPILER_CLANG:
+    elif Base.compiler == Base.COMPILER_MAC_CLANG:
         return "clang"
     return "none"
 
@@ -212,8 +234,17 @@ def rb_is_vs2010():
 def rb_is_vs2012():
     return Base.compiler == Base.COMPILER_WIN_MSVC2012
 
-def rb_is_macgcc():
+def rb_is_mac_gcc():
     return Base.compiler == Base.COMPILER_MAC_GCC    
+
+def rb_is_mac_clang():
+    return Base.compiler == Base.COMPILER_MAC_CLANG
+
+def rb_is_clang():
+    return rb_is_mac_clang()
+
+def rb_is_gcc():
+    return rb_is_mac_gcc()
 
 def rb_is_debug():
     return Base.build_type == Base.BUILD_TYPE_DEBUG
@@ -263,6 +294,22 @@ def rb_get_os_shortname():
 def rb_get_triplet():
     return rb_get_os_shortname() +"-" +rb_get_compiler_shortname() +"-" +rb_get_architecture_shortname()
 
+
+def rb_solve_dependencies(script, scripts, result):
+    for name in script.dependencies:
+        sc = rb_find_script(scripts, name)
+        if sc:
+            result.append(sc)
+            rb_solve_dependencies(sc, scripts, result)
+
+        
+# find a script object in 'scripts' with the given 'name'
+def rb_find_script(scripts, name):
+    for s in scripts:
+        if s.name == name:
+            return s
+    return None
+
 # the directory where the compiled libraries + headers are installed
 def rb_install_get_dir():
     
@@ -277,6 +324,17 @@ def rb_install_get_dir():
 # get the full path to a lib file for the current install/build dir
 def rb_install_get_lib_file(filename):
     return rb_install_get_dir() +"lib/" +filename
+
+def rb_install_lib_file_exists(filename):
+    rb_green_ln(rb_install_get_lib_file(filename))
+    return os.path.exists(rb_install_get_lib_file(filename))
+
+def rb_install_get_bin_file(filename):
+    return rb_install_get_bin_dir() +"/" +filename
+
+def rb_install_bin_file_exists(filename):
+    return os.path.exists(rb_install_get_bin_file(filename))
+
 
 # get the full path to a header file for the current install/build dir
 def rb_install_get_include_file(filename):
@@ -321,6 +379,11 @@ def rb_install_get_lib_dir():
 def rb_install_get_bin_dir():
     return rb_install_get_dir() +"/bin/"
 
+# check if a lib file exists in the install directory; this can be used 
+# to check if a file has been build
+def rb_install_lib_exists(file):
+    return os.path.exists(rb_install_get_lib_dir()+file)
+
 def rb_get_lib_dir():
     rb_red_ln("THIS SHOULD BEE RENAMED TO rb_download_get_lib_dir")
     return rb_install_get_dir() +"/lib/"
@@ -358,6 +421,18 @@ def rb_get_cflags():
 
     return cf
 
+def rb_get_cc():
+    if rb_is_clang():
+        return "clang"
+    elif rb_is_gcc():
+        return "gcc"
+
+def rb_get_cxx():
+    if rb_is_clang():
+        return "clang++"
+    elif rb_is_gcc():
+        return "g++"
+
 def rb_get_ldflags():
     ld = ""
     if Base.arch == Base.ARCH_M32:
@@ -378,12 +453,42 @@ def rb_get_cppflags():
     return cf
 
 def rb_get_configure_options():
-    return "CXXFLAGS='" +rb_get_cxxflags() +"' CFLAGS='" +rb_get_cflags() +"' LDFLAGS='" +rb_get_ldflags() +"' CPPFLAGS='" +rb_get_cppflags() +"'"
+    return " CXXFLAGS=\"" +rb_get_cxxflags() +"\" CFLAGS=\"" +rb_get_cflags() +"\" LDFLAGS=\"" +rb_get_ldflags() +"\" CPPFLAGS=\"" +rb_get_cppflags() +"\""
 
+def rb_get_configure_flags():
+    #dbg_flags = ""
+    #if rb_is_debug():
+    #    dbg_flags = " --enable-debug "
+    return " --prefix=\"" +rb_install_get_dir() +"\" "
+
+# sometimes a make file does not use the environment CC and CXX flags; you can use this too, see the glew script
+def rb_get_make_compiler_flags():
+    return " CC='" +rb_get_cc() +"' CXX='" +rb_get_cxx() +"'"
+
+# returns a dictionary with the environment build options that are used by autotools
+# you can pass this into rb_execute_shell_commands
+def rb_get_autotools_environment_vars():
+    vars = { "CXXFLAGS"   : "\"" +rb_get_cxxflags()    +"\"", 
+             "CFLAGS"     : "\"" +rb_get_cflags()      +"\"",
+             "LDFLAGS"    : "\"" +rb_get_ldflags()     +"\"", 
+             "CPPFLAGS"   : "\"" +rb_get_cppflags()    +"\"",
+             "CC"         : "\"" +rb_get_cc()          +"\"",
+             "CXX"        : "\"" +rb_get_cxx()         +"\""
+             }
+
+
+    if rb_is_mac():
+        vars['PATH'] ="\"" +rb_install_get_bin_dir() +":${PATH}\""
+        vars['PKG_CONFIG_PATH'] = "\"" +rb_install_get_lib_dir() +"pkgconfig\""
+
+    return vars
+
+    
 # script = the compile script instance (pass self)
 # flags = extra flags we add to the ./configure command
 # options = CPP/CXX etc.. options
 # environmentVars = dictionary with additional environment vars we set. e.g. envvars = {"CC":"clang", "CXX":"clang++"} etc.. 
+
 def rb_build_with_autotools(script, flags = None, options = True, environmentVars = None):
     # extra custom flags
     ef = ""
@@ -397,28 +502,29 @@ def rb_build_with_autotools(script, flags = None, options = True, environmentVar
 
     cmd = []
 
-    if rb_is_mac():
-        cmd.append("export PATH=" +rb_install_get_bin_dir() +":${PATH}")
-        cmd.append("export PKG_CONFIG_PATH=" +rb_install_get_lib_dir() +"pkgconfig")
+#    if rb_is_mac():
+#        cmd.append("export PATH=" +rb_install_get_bin_dir() +":${PATH}")
+#        cmd.append("export PKG_CONFIG_PATH=" +rb_install_get_lib_dir() +"pkgconfig")
 
-    # add extra environment vars
+#    dbg_flags = ""
+#    if rb_is_debug():
+#        dbg_flags = " --enable-debug "
+#
+    # merge environment vars
+    env = {}
     if environmentVars:
-        for varname in environmentVars:
-            if rb_is_mac():
-                cmd.append("export " +varname +"=" +environmentVars[varname])
-            else:
-                rb_red_ln("error: setting environment vars not working with autotools on this platform yet")
+        env = environmentVars
 
-    dbg_flags = ""
-    if rb_is_debug():
-        dbg_flags = " --enable-debug "
-        
+    auto_env = rb_get_autotools_environment_vars()
+    for varname in auto_env:
+        env[varname] = auto_env[varname]
+
     #cmd.append("export CC=clang")
     #cmd.append("export CXX=clang++")
     cmd.append("cd " +rb_get_download_dir(script))
-    cmd.append("set -x && ./configure --prefix=" +rb_install_get_dir() +" " +ef +" " +dbg_flags +" " +opts)
+    cmd.append("set -x && ./configure " +rb_get_configure_flags() +ef +" " +" " +opts)
     cmd.append("make clean && make && make install")
-    rb_execute_shell_commands(script, cmd)
+    rb_execute_shell_commands(script, cmd, env)
     #os.system(" && ".join(cmd))
 
 def rb_arch_string(arch):
@@ -432,19 +538,38 @@ def rb_arch_string(arch):
 def rb_is_file_downloaded(script, file):
     return os.path.isfile(rb_get_download_dir(script) + file)
 
-def rb_execute_shell_commands(script, commands):
+# environmentVars: dictionary with environment vars we set
+def rb_execute_shell_commands(script, commands, environmentVars = None):
     
+    # make sure we have a list
+    cmd_input = list(commands)
+    cmd = []
+
+    # add extra environment vars
+    if environmentVars:
+        for varname in environmentVars:
+            if rb_is_mac():
+                cmd.append("export " +varname +"=" +environmentVars[varname])
+            else:
+                rb_red_ln("error: setting environment vars not working with autotools on this platform yet")
+
+    for el in cmd_input:
+        cmd.append(el)
+
+    # create the shell script
     if rb_get_os_shortname() == "win":
         f = open("tmp.bat", "w+")
-        f.write("\n".join(commands))
+        f.write("\n".join(cmd))
         f.close()
         subprocess.call("tmp.bat")
     else:
         d = rb_get_base_path()
         f = open(d + "tmp.sh", "w+")
-        f.write("\n".join(commands))
+        f.write("\n".join(cmd))
         f.close()
+        os.chmod(d + "tmp.sh", 0777)
         os.system(d + "tmp.sh")
+
 
 # sets path for e.g. nasm, perl etc..
 def rb_set_environment_vars():
@@ -512,6 +637,10 @@ def rb_download_dir_copy_file_internal(script, src, dest):
 
     os.system(rb_get_copy_command() +" " +src +" " +dest)
 
+# returns a file relative to the download dir for the given script
+def rb_download_get_file(script, file):
+    return rb_get_download_dir(script) +file;
+
 # remove a directory from a script specific download dir
 # this will not remove the download dir itself; but only a 
 # subdir of the download dir for the given script; this
@@ -547,13 +676,13 @@ def rb_deploy_lib(lib):
         rb_ensure_dir(d)
         #shutil.copyfile(os.path.normpath(dll), os.path.normpath(d))
         os.system(rb_get_copy_command()  +os.path.normpath(lib) +" " +os.path.normpath(d))
-        rb_yellow_ln(lib)
+        rb_yellow_ln(lib +" >> " +os.path.normpath(lib) +" " +os.path.normpath(d))
     else:
         rb_red_ln("File not found " +lib)
     
 
 # copy one specific header
-# rb_depoloy_header(rb_install_get_include_file("x264.h"))
+# rb_deploy_header(rb_install_get_include_file("x264.h"))
 def rb_deploy_header(hdr, subdir = None):
     if os.path.exists(hdr):
         sd = ""

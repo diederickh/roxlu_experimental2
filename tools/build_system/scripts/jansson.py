@@ -18,7 +18,7 @@ class Jansson(Base):
     def build(self):
 
         # MAC 
-        if Base.compiler == Base.COMPILER_MAC_GCC:
+        if rb_is_mac():
             rb_build_with_autotools(self)
 
         # WIN VS2010
@@ -55,7 +55,7 @@ class Jansson(Base):
             rb_execute_shell_commands(cmd)
 
     def deploy(self):
-        if rb_get_os_shortname() == "win":
+        if rb_is_win():
             dp = rb_get_download_path(self)
             sd = rb_get_download_path(self) +"win32/" \
                  +rb_get_compiler_shortname() \
@@ -68,5 +68,9 @@ class Jansson(Base):
             rb_deploy_header(dp +"/src/jansson_config.h")
             
         else:
-            rb_red_ln("jansson: deploy not yet implemented")
+            rb_deploy_lib(rb_install_get_lib_file("libjansson.a"))
+            rb_deploy_lib(rb_install_get_lib_file("libjansson.4.dylib"))
+            rb_deploy_lib(rb_install_get_lib_file("libjansson.dylib"))
+            rb_deploy_header(rb_install_get_include_file("jansson.h"))
+            rb_deploy_header(rb_install_get_include_file("jansson_config.h"))
         

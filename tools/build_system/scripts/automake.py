@@ -18,7 +18,7 @@ class AutoMake(Base):
                                 "automake-" +self.version)
 
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac():
             rb_build_with_autotools(self)
         elif rb_is_msvc():
             rb_red_ln("automake is only for unices")
@@ -27,7 +27,7 @@ class AutoMake(Base):
     def deploy(self):
         if rb_is_msvc():
             rb_red_ln("automake is only for unices")
-        elif rb_is_macgcc():
+        elif rb_is_mac():
             rb_red_ln("we do not implement deploy for automake; is run from build dir")
 
                 

@@ -16,7 +16,7 @@ class Tiff(Base):
                                 "tiff-" +self.version +".tar.gz", 
                                 "tiff-" +self.version)
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac():
 
             ef = (
                 "--with-zlib-include-dir=" +rb_get_include_dir(),

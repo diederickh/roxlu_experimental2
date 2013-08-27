@@ -15,7 +15,7 @@ class Theora(Base):
         rb_svn_checkout(self, "http://svn.xiph.org/trunk/theora", self.version)
 
     def build(self):
-        if rb_is_macgcc():
+        if rb_is_mac():
 
             cmds = [
                 "export PATH=" +rb_install_get_bin_dir() +":${PATH}",
@@ -60,7 +60,7 @@ class Theora(Base):
             rb_deploy_dll(dd +"libtheora.dll")
             rb_deploy_lib(dd +"libtheora.lib")
             rb_deploy_headers(dir = rb_get_download_dir(self) +"/include/theora", subdir =  "theora")
-        elif rb_is_macgcc():
+        elif rb_is_mac():
             rb_deploy_lib(rb_install_get_lib_file("libtheora.a"))
             rb_deploy_lib(rb_install_get_lib_file("libtheoraenc.a"))
             rb_deploy_lib(rb_install_get_lib_file("libtheoradec.a"))

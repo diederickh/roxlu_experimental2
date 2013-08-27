@@ -28,7 +28,7 @@ class OpenSSL(Base):
 
             cmd = ( 
                 "set -x && cd "+rb_get_download_dir(self),
-                "./Configure --prefix=" +rb_get_install_dir() +" " +platform,
+                "./Configure --prefix=" +rb_install_get_dir() +" " +platform,
                 "make clean",
                 "make install",
             )
@@ -54,7 +54,6 @@ class OpenSSL(Base):
                 "cd " +dd,
                 "call " +rb_msvc_get_setvars(),
                 "perl Configure VC-WIN32 enable-camellia zlib-dynamic --openssldir=./ --prefix=" +rb_install_get_dir(),
-#                "nmake -f ms\\ntdll.mak clean",
                 "nmake -f ms\\ntdll.mak",
                 "ms\\do_nasm",
                 "nmake -f ms\\ntdll.mak install"
@@ -72,6 +71,8 @@ class OpenSSL(Base):
             rb_deploy_lib(bde +"ssleay32.lib")
             rb_deploy_headers(dir = bd +"inc32/openssl/", subdir =  "openssl")
         else:
-            rb_red_ln("deploy in openssl not implemented")
+            rb_deploy_lib(rb_install_get_lib_file("libssl.a"))
+            rb_deploy_lib(rb_install_get_lib_file("libcrypto.a"))
+            rb_deploy_headers(dir = rb_install_get_include_dir() +"openssl", subdir = "openssl")
 
         
