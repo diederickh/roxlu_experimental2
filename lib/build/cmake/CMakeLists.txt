@@ -207,7 +207,6 @@ endmacro(roxlu_app_initialize)
 
 macro(roxlu_app_add_source_file file)
   roxlu_add_source_file(${roxlu_app_src_dir}/${file})
-  source_group("src\\simulation" FILES ${file})
 endmacro(roxlu_app_add_source_file)
 
 
@@ -217,6 +216,9 @@ endmacro(roxlu_app_add_source_file)
 # endfunction()
 
 macro(roxlu_install_app)
+
+
+  source_group("src\\application" FILES ${roxlu_source_files})
 
   # removed the if(WIN32) with the CMAKE_RUNTIME_* paths, because xcode was generating executables in the wrong directory
   #if(WIN32)
@@ -415,12 +417,13 @@ macro(roxlu_addon_add_source_files glob)
 endmacro()
 
 macro(roxlu_addon_end)
+
   list(LENGTH roxlu_addon_source_files roxlu_addon_source_files_count)
   if(${roxlu_addon_source_files_count} GREATER 0)
     roxlu_add_lib("roxlu_${roxlu_addon_name}")
     add_library("roxlu_${roxlu_addon_name}" STATIC ${roxlu_addon_source_files})
   endif()
-
+  
   set(roxlu_addon_source_files "")
   set(roxlu_addon_name "")
   set(roxlu_addon_base_dir "")
@@ -443,6 +446,7 @@ set(roxlu_core_sources
   ${roxlu_src_dir}/core/Log.cpp
   ${roxlu_src_dir}/core/StringUtil.cpp
 )
+
 set(roxlu_io_sources
   ${roxlu_src_dir}/io/Buffer.cpp
   ${roxlu_src_dir}/io/RingBuffer.cpp

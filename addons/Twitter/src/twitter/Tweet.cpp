@@ -85,7 +85,7 @@ Tweet::Tweet() {
 }
 
 bool Tweet::parseJSON(std::string json) {
-  json_t* root;
+  json_t* root = NULL;
   json_error_t err;
 
   root = json_loads(json.c_str(), 0, &err);
@@ -116,7 +116,9 @@ bool Tweet::parseJSON(std::string json) {
   TW_PARSE_JSON_BOOL(root, el, "favorited", favorited);
   TW_PARSE_JSON_BOOL(root, el, "retweeted", retweeted);
   TW_PARSE_JSON_STR(root, el, "lang", lang);
-
+  
+  json_decref(root);
+  root = NULL;
   return true;
 }
 

@@ -8,7 +8,7 @@ set(glfw_wrapper_sources ${glfw_base_dir}/glfw_wrapper/SimulationBase.cpp)
 
 roxlu_add_source_file(${glfw_wrapper_sources})
 
-source_group("src\\simulation" FILES ${glfw_wrapper_sources})
+source_group("src\\application" FILES ${glfw_wrapper_sources})
 
 if(UNIX)
 

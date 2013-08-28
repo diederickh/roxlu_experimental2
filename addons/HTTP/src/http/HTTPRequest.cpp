@@ -134,7 +134,7 @@ bool HTTPRequest::toString(std::string& result) {
 
   result += http_body;
 
-#if 1 
+#if 0 
   std::ofstream ofs(rx_to_data_path("out.raw").c_str(), std::ios::binary | std::ios::out);
   if(!ofs.is_open()) {
     RX_ERROR("Cannot open output file");
@@ -144,6 +144,7 @@ bool HTTPRequest::toString(std::string& result) {
     ofs.close();
   }
 #endif
+
   return true;
 }
 

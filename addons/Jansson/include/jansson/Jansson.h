@@ -9,7 +9,6 @@ struct JanssonPathSegment {
   std::string name;
 };
 
-
 class Jansson {
  public:
   Jansson();

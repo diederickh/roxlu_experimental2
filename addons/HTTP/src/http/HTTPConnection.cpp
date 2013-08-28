@@ -102,16 +102,16 @@ void httpconnection_on_resolved(uv_getaddrinfo_t* req, int status, struct addrin
 
 void httpconnection_on_connect(uv_connect_t* req, int status) {
   HTTPConnection* c = static_cast<HTTPConnection*>(req->data);
-  if(status == -1) {
-    RX_ERROR("> cannot connect: %s:", uv_strerror(uv_last_error(c->loop)));
+  if(status < 0) {
+    RX_ERROR("> cannot connect: %s:", uv_strerror(status));
     RX_ERROR("@ todo should be `delete` the connection here?");
     return;
   }
 
 
   int r = uv_read_start((uv_stream_t*)c->sock, httpconnection_on_alloc, httpconnection_on_read);
-  if(r) {
-    RX_ERROR("> uv_read_start() failed: %s", uv_strerror(uv_last_error(c->loop)));
+  if(r < 0) {
+    RX_ERROR("> uv_read_start() failed: %s", uv_strerror(r));
     RX_ERROR("@ todo should be `delete` the connection here?");
     return;
   }
@@ -131,23 +131,22 @@ void httpconnection_on_read(uv_stream_t* handle, ssize_t nread, uv_buf_t buf) {
 
   if(nread < 0) {
     int r = uv_read_stop(handle);
-    if(r) {
-      RX_ERROR("> error uv_read_stop: %s", uv_strerror(uv_last_error(handle->loop)));
-      
+    if(r < 0) {
+      RX_ERROR("> error uv_read_stop: %s", uv_strerror(r));
     }
     if(buf.base) {
       delete buf.base;
       buf.base = NULL;
     }
 
-    uv_err_t err = uv_last_error(handle->loop);
-    if(err.code != UV_EOF) {
-      RX_ERROR("> disconnected from server but not correctly: %s",uv_strerror(uv_last_error(handle->loop))) ;
+    //uv_err_t err = uv_last_error(handle->loop);
+    if(nread != UV_EOF) {
+      RX_ERROR("> disconnected from server but not correctly");
     }
 
     r = uv_shutdown(&c->shutdown_req, handle, httpconnection_on_shutdown);
-    if(r) {
-      RX_ERROR("> error shutting down client: %s", uv_strerror(uv_last_error(handle->loop)));
+    if(r < 0) {
+      RX_ERROR("> error shutting down client: %s", uv_strerror(r));
       RX_ERROR("@ todo should be `delete` the connection here?");
     }
 
@@ -281,8 +280,8 @@ bool HTTPConnection::connect(httpconnection_event_callback eventCB,  /* gets cal
   r = uv_getaddrinfo(loop, &resolver_req, httpconnection_on_resolved, 
                      host.c_str(), port.c_str(), &hints);
 
-  if(r) {
-    RX_ERROR("cannot uv_tcp_init(): %s", uv_strerror(uv_last_error(loop)));
+  if(r < 0) {
+    RX_ERROR("cannot uv_tcp_init(): %s", uv_strerror(r));
     return false;
   }
     
@@ -311,8 +310,8 @@ bool HTTPConnection::send(char* data, size_t len) {
   req->data = this;
 
   int r = uv_write(req, (uv_stream_t*)sock, &buf, 1, httpconnection_on_write);
-  if(r) {
-    RX_ERROR("uv_write() failed: %s", uv_strerror(uv_last_error(loop)));
+  if(r < 0) {
+    RX_ERROR("uv_write() failed: %s", uv_strerror(r));
     return false;
   }
   
