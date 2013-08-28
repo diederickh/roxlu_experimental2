@@ -39,6 +39,15 @@ class Tiff(Base):
             )
 
             rb_execute_shell_commands(self, cmd)
+
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libtiff.a")
+        elif rb_is_win():
+            return rb_deploy_lib_file_exists("libtiff.lib")
+        else:
+            rb_red_ln("Cannot check if the lib is build on this platform")
+
     
     def deploy(self):
         if rb_is_msvc():

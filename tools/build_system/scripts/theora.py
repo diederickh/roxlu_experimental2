@@ -6,9 +6,14 @@ class Theora(Base):
     def __init__(self):
         self.name = "theora"
         self.version = "18970"
-        self.compilers = [Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012, Base.COMPILER_MAC_GCC]
+        self.compilers = [Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012, Base.COMPILER_MAC_GCC, Base.COMPILER_MAC_CLANG]
         self.arch = [Base.ARCH_M32, Base.ARCH_M64]
-        self.dependencies = ["automake","autoconf","libtool","vorbis","ogg"]
+
+        if rb_is_unix():
+            self.dependencies = ["automake","autoconf","libtool","vorbis","ogg"]
+        elif rb_is_win():
+            self.dependencies = ["vorbis","ogg"]
+
         self.info = "We use the svn version; which contains a valid VS2010 build file"
         
     def download(self): 
@@ -51,6 +56,14 @@ class Theora(Base):
             )
 
             rb_execute_shell_commands(self, cmd)
+
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libtheora.a")
+        elif rb_is_win():
+            return rb_deploy_lib_file_exists("libtheora.lib")
+        else:
+            rb_red_ln("Cannot check if the lib is build on this platform")
 
 
     def deploy(self):

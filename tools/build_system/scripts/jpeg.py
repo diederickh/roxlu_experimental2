@@ -17,7 +17,7 @@ class JPEG(Base):
                                 "jpegsrc.v" +self.version +".tar.gz", 
                                 "jpeg-" +self.version)
     def build(self):
-        if rb_is_mac_gcc():
+        if rb_is_unix():
             rb_build_with_autotools(self)
         elif rb_is_msvc():
 
@@ -37,6 +37,13 @@ class JPEG(Base):
             )
 
             rb_execute_shell_commands(self, cmd)
+
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libjpeg.a")
+        else:
+            return rb_deploy_lib_file_exists("libjpeg.lib")
+            
     
     def deploy(self):
         bd = rb_get_download_dir(self)

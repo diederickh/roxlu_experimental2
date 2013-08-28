@@ -44,7 +44,10 @@ class Ogg(Base):
             rb_execute_shell_commands(self, cmd)
 
     def is_build(self):
-        return rb_install_lib_file_exists("libogg.a")
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libogg.a")
+        elif rb_is_win():
+            return rb_deploy_lib_file_exists("libogg.lib")
 
     def deploy(self):
         if rb_is_msvc():

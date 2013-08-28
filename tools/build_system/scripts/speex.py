@@ -32,7 +32,10 @@ class Speex(Base):
             rb_execute_shell_commands(self, cmd)
 
     def is_build(self):
-        return rb_install_lib_file_exists("libspeex.a")
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libspeex.a")
+        else:
+            return rb_deploy_lib_file_exists("libspeex.lib")
 
     def deploy(self):
         if rb_is_msvc():
@@ -42,7 +45,7 @@ class Speex(Base):
             rb_deploy_lib(dd +"libspeex.lib")
             rb_deploy_headers(dir = rb_get_download_dir(self) +"include/speex", subdir = "speex")
 
-        elif rb_is_mac():
+        elif rb_is_unix():
             rb_deploy_lib(rb_install_get_lib_file("libspeex.a"))
             rb_deploy_lib(rb_install_get_lib_file("libspeexdsp.a"))
             rb_deploy_lib(rb_install_get_lib_file("libspeexdsp.dylib"))

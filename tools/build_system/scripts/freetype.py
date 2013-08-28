@@ -17,7 +17,7 @@ class FreeType(Base):
                                 "freetype-" +self.version +".tar.gz", 
                                 "freetype-" +self.version)
     def build(self):
-        if rb_is_mac():
+        if rb_is_unix():
             rb_build_with_autotools(self)
 
         elif rb_is_msvc():

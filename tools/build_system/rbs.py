@@ -173,7 +173,7 @@ if task == TASK_BUILD:
     rs = rs[::-1]
     for r in rs:
         if not r.is_build():
-            rb_green_ln("Found dependency: "+r.name)
+            rb_red_ln("Found dependency: "+r.name)
             r.build()
             r.deploy()
 

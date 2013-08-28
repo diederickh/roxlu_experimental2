@@ -18,11 +18,11 @@ class Jansson(Base):
     def build(self):
 
         # MAC 
-        if rb_is_mac():
+        if rb_is_unix():
             rb_build_with_autotools(self)
 
         # WIN VS2010
-        elif Base.compiler == Base.COMPILER_WIN_MSVC2010:
+        elif rb_is_vs2010():
 
             bd = rb_get_download_path(self) +"win32/vs2010"
             cmd = ("call " +rb_msvc_get_setvars(),
@@ -53,6 +53,12 @@ class Jansson(Base):
             )
 
             rb_execute_shell_commands(cmd)
+
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libjansson.a")
+        else:
+            return rb_deploy_lib_file_exists("jansson.lib")
 
     def deploy(self):
         if rb_is_win():

@@ -17,8 +17,7 @@ class PCRE(Base):
                                 "pcre-" +self.version)
 
     def build(self):
-        if rb_is_macgcc():
-            rb_red_ln("@todo pcre mac")
+        if rb_is_unix():
             rb_build_with_autotools(self);
         elif rb_is_msvc():
 
@@ -31,6 +30,19 @@ class PCRE(Base):
 
             rb_cmake_configure(self, custom_opts)
             rb_cmake_build(self)
+
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libcpre.a")
+        elif rb_is_win():
+            debug_flag = ""
+            if rb_is_debug():
+                debug_flag = "d"
+            libname = "pcrecpp" +debug_flag +".lib"
+            return rb_deploy_lib_file_exists(libname)
+        else:
+            rb_red_ln("Cannot check if the lib is build on this platform")
+
 
     def deploy(self):
 

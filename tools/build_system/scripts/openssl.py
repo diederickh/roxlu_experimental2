@@ -18,7 +18,7 @@ class OpenSSL(Base):
                                 "openssl-" +self.version +".tar.gz", 
                                 "openssl-" +self.version)
     def build(self):
-        if rb_is_mac():
+        if rb_is_unix():
             # 32 / 64 bit
             platform = ""
             if Base.arch == Base.ARCH_M32:
@@ -60,6 +60,15 @@ class OpenSSL(Base):
             )
             
             rb_execute_shell_commands(self, cmd)
+            rb_execute_shell_commands(self, cmd) # yes, we really need to execute these commands twice (something with env. variables I think)
+
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libssl.a")
+        elif rb_is_win():
+            return rb_deploy_lib_file_exists("libeay32.lib")
+        else:
+            rb_red_ln("Cannot check if the lib is build on this platform")
 
     def deploy(self):
         if rb_is_msvc():

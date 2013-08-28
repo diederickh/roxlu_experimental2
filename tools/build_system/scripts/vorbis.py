@@ -34,9 +34,15 @@ class Vorbis(Base):
 
             rb_execute_shell_commands(self, cmd)
 
+
     def is_build(self):
-        return rb_install_lib_file_exists("libvorbis.a")
-                
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libvorbis.a")
+        elif rb_is_win():
+            return rb_deploy_lib_file_exists("libvorbis.lib")
+        else:
+            rb_red_ln("Cannot check if the lib is build on this platform")
+
     def deploy(self):
         if rb_is_msvc():
             sd = "VS2010" if rb_is_vs2010() else "VS2012"

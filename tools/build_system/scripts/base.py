@@ -1,9 +1,11 @@
 import os
 from sys import platform as _platform
+from os.path import expanduser
 import sys
 import mimetypes
 import shutil
 import subprocess
+
 from colorama import init, Fore, Back, Style
 init()
 
@@ -64,6 +66,9 @@ class Base(object):
 def rb_download(script, url, outfile):
     os.system("curl -L " +url +" -o " +rb_get_download_dir(script) +outfile)
 
+def rb_move_file(src, dest):
+    os.system("mv " +os.path.normpath(src) + " " +os.path.normpath(dest))
+
 # make sure that the given directory exists
 # recreate: when set to `True` we will first remove the directory if exists
 def rb_ensure_dir(dir, recreate = False):
@@ -79,6 +84,10 @@ def rb_ensure_download_dir(script, dir = None, recreate = False):
         rb_ensure_dir(rb_get_download_dir() +"/" +script.name +"/", recreate)
     else: 
         rb_ensure_dir(rb_get_download_dir() +"/" +script.name +"/" +dir, recreate)
+
+def rb_ensure_tools_dir(dirname):
+    dir = rb_get_tools_path() +dirname;
+    rb_ensure_dir(dir)
 
 # returns the directory into which the sources are downloaded
 def rb_get_download_dir(script = None):
@@ -104,9 +113,9 @@ def rb_script_get_file(script, file):
 # return the full path to the download dir for the given script or just to the base download dir
 def rb_get_download_path(script = None):
     if script is None:
-        return os.path.abspath(Base.base_dir +"/" +Bsse.download_dir)
+        return os.path.abspath(Base.base_dir +"/" +Base.download_dir) +"/"
     else:
-        return os.path.abspath(Base.base_dir +"/" +Base.download_dir +"/" +script.name +"/")
+        return os.path.abspath(Base.base_dir +"/" +Base.download_dir +"/" +script.name ) +"/"
 
 
 # extracts and copies the files from the extracted directory into the download dir of a script
@@ -185,6 +194,7 @@ def rb_check_windows_setup():
 
     nasm_path = rb_get_tools_path() +"\\nasm\\"
     perl_path = rb_get_tools_path() +"\\perl\\"
+    mingw_path = rb_get_tools_path() +"\\mingw\\"
 
     error = False
     if not os.path.exists(nasm_path):
@@ -193,7 +203,10 @@ def rb_check_windows_setup():
     if not os.path.exists(perl_path):
         error = True
         rb_red_ln("Make sure to install perl (from ActiveState) in tools\\perl\\")
-    
+    if not os.path.exists(mingw_path):
+        error = True
+        rb_red_ln("Make sure to install MinGW to tools\\mingw\\")
+
     if not error:
         perl_version = subprocess.check_output(["perl", "--version"])
         if "activestate" not in perl_version.lower():
@@ -261,6 +274,9 @@ def rb_is_mac():
 def rb_is_linux():
     return rb_get_os_shortname() == "linux"
 
+def rb_is_unix():
+    return rb_is_mac() or rb_is_linux()
+
 def rb_is_32bit():
     return Base.arch == Base.ARCH_M32
 
@@ -326,8 +342,7 @@ def rb_install_get_lib_file(filename):
     return rb_install_get_dir() +"lib/" +filename
 
 def rb_install_lib_file_exists(filename):
-    rb_green_ln(rb_install_get_lib_file(filename))
-    return os.path.exists(rb_install_get_lib_file(filename))
+    return os.path.exists(os.path.normpath(rb_install_get_lib_file(filename)))
 
 def rb_install_get_bin_file(filename):
     return rb_install_get_bin_dir() +"/" +filename
@@ -389,12 +404,7 @@ def rb_get_lib_dir():
     return rb_install_get_dir() +"/lib/"
 
 def rb_get_cxxflags():
-    cf = ""
     # i386 is used by linker; c/cpp flags use -m32, -m64
-    """ 
-    if Base.arch == Base.ARCH_M32:
-        cf += "\" -archi386 \""
-    """
     cf = ""
     if Base.arch == Base.ARCH_M32:
         cf = "-m32"
@@ -416,8 +426,12 @@ def rb_get_cflags():
 
     if rb_is_debug():
         cf += " -g -O0 "
-
-    cf += " -I" +rb_install_get_include_dir() +" "
+        
+    # on windows we use the deploy as our local development dir, on unices we can use the install dir
+    if rb_is_win():
+        cf += " -I" +os.path.normpath(rb_deploy_get_include_dir()) +" "
+    else:
+        cf += " -I" +rb_install_get_include_dir() +" "
 
     return cf
 
@@ -426,23 +440,36 @@ def rb_get_cc():
         return "clang"
     elif rb_is_gcc():
         return "gcc"
+    else:
+        return ""
+
+    
 
 def rb_get_cxx():
     if rb_is_clang():
         return "clang++"
     elif rb_is_gcc():
         return "g++"
+    else:
+        return ""
 
+# when this function is called on windows, we assume mingw and we don't return -arch flag but use the defualt ones 
 def rb_get_ldflags():
     ld = ""
-    if Base.arch == Base.ARCH_M32:
+    if rb_is_32bit():
         # @todo the linker arch option may have a different name; -m32/-m64
-        ld = "-arch i386 "
-    elif Base.arch == Base.ARCH_M64:
+        if not rb_is_win():
+            ld = "-arch i386 "
+    elif rb_is_64bit():
         # @todo the linker arch option may have a different name; -m32/-m64
-        ld = "-arch x86_64 "
+        if not rb_is_win():
+            ld = "-arch x86_64 "
 
-    ld += " -L" +rb_install_get_lib_dir() +" "
+    # on windows we use the deploy dir as our local development root
+    if rb_is_unix():
+        ld += " -L" +rb_install_get_lib_dir() +" "
+    elif rb_is_win():
+        ld += " -L" +os.path.normpath(rb_deploy_get_lib_dir()) +" "
 
     return ld
 
@@ -456,10 +483,10 @@ def rb_get_configure_options():
     return " CXXFLAGS=\"" +rb_get_cxxflags() +"\" CFLAGS=\"" +rb_get_cflags() +"\" LDFLAGS=\"" +rb_get_ldflags() +"\" CPPFLAGS=\"" +rb_get_cppflags() +"\""
 
 def rb_get_configure_flags():
-    #dbg_flags = ""
-    #if rb_is_debug():
-    #    dbg_flags = " --enable-debug "
-    return " --prefix=\"" +rb_install_get_dir() +"\" "
+    return rb_get_configure_prefix_flag()
+
+def rb_get_configure_prefix_flag():
+   return " --prefix=\"" +rb_install_get_dir() +"\" "
 
 # sometimes a make file does not use the environment CC and CXX flags; you can use this too, see the glew script
 def rb_get_make_compiler_flags():
@@ -502,14 +529,6 @@ def rb_build_with_autotools(script, flags = None, options = True, environmentVar
 
     cmd = []
 
-#    if rb_is_mac():
-#        cmd.append("export PATH=" +rb_install_get_bin_dir() +":${PATH}")
-#        cmd.append("export PKG_CONFIG_PATH=" +rb_install_get_lib_dir() +"pkgconfig")
-
-#    dbg_flags = ""
-#    if rb_is_debug():
-#        dbg_flags = " --enable-debug "
-#
     # merge environment vars
     env = {}
     if environmentVars:
@@ -519,13 +538,10 @@ def rb_build_with_autotools(script, flags = None, options = True, environmentVar
     for varname in auto_env:
         env[varname] = auto_env[varname]
 
-    #cmd.append("export CC=clang")
-    #cmd.append("export CXX=clang++")
     cmd.append("cd " +rb_get_download_dir(script))
     cmd.append("set -x && ./configure " +rb_get_configure_flags() +ef +" " +" " +opts)
     cmd.append("make clean && make && make install")
     rb_execute_shell_commands(script, cmd, env)
-    #os.system(" && ".join(cmd))
 
 def rb_arch_string(arch):
     if arch == Base.ARCH_M32:
@@ -538,23 +554,36 @@ def rb_arch_string(arch):
 def rb_is_file_downloaded(script, file):
     return os.path.isfile(rb_get_download_dir(script) + file)
 
-# environmentVars: dictionary with environment vars we set
-def rb_execute_shell_commands(script, commands, environmentVars = None):
-    
+# will merge the given commands with environment vars; based on the OS/shell we will set 
+# the environment vars
+# style: 0 = platform specific
+# style: 1 = use "export"
+def rb_merge_shell_commands_with_envvars(commands, envvars, style = 0):
     # make sure we have a list
     cmd_input = list(commands)
     cmd = []
 
+    if style == 0:
+        if rb_is_mac():
+            style = 1
+
     # add extra environment vars
-    if environmentVars:
-        for varname in environmentVars:
-            if rb_is_mac():
-                cmd.append("export " +varname +"=" +environmentVars[varname])
+    if envvars:
+        for varname in envvars:
+            if style == 1:
+                cmd.append("export " +varname +"=" +envvars[varname])
             else:
                 rb_red_ln("error: setting environment vars not working with autotools on this platform yet")
 
     for el in cmd_input:
         cmd.append(el)
+        
+    return cmd
+
+# environmentVars: dictionary with environment vars we set
+def rb_execute_shell_commands(script, commands, environmentVars = None):
+    
+    cmd = rb_merge_shell_commands_with_envvars(commands, environmentVars)
 
     # create the shell script
     if rb_get_os_shortname() == "win":
@@ -597,6 +626,11 @@ def rb_get_tools_path():
 
 def rb_get_base_path():
     return Base.base_dir
+
+# check if a file exists in the tool dir
+def rb_tools_file_exists(file):
+    src = rb_get_tools_path() +file;
+    return os.path.exists(src)
 
 # Copies a file from the script (sources) dir to the download dir for the given script
 # The file is copied from scripts/[script.name]/[file], to downloads/[script.name], or 
@@ -731,6 +765,13 @@ def rb_deploy_create_headers_dir(dir):
     if not os.path.exists(dd):
         rb_ensure_dir(dd)
 
+def rb_deploy_get_lib_file(filename):
+    return rb_deploy_get_lib_dir() +filename;
+
+def rb_deploy_lib_file_exists(filename):
+    rb_yellow_ln(os.path.normpath(rb_deploy_get_lib_file(filename)))
+    return os.path.exists(os.path.normpath(rb_deploy_get_lib_file(filename)))
+
 # Console output
 # ---------------------------------------------------------------------------
 
@@ -798,21 +839,11 @@ def rb_vs2012_get_path():
             return p;
     return ""
 
-# get the path to the vcvars.bat file thats sets the compiler vars for vs2012
-#def rb_vs2012_get_vcvars_path():
-#    return rb_vs2012_get_path() +"\\VC\\bin\\vcvars32.bat"
-
-
-#def rb_vs2012_get_msbuild_path():
-#    return r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe"
-
 def rb_msvc_get_toolset_flag():
    if rb_is_vs2010():
        return " /property:PlatformToolset=v100 "
    elif rb_is_vs2012():
        return " /property:PlatformToolset=v110 "
-           
-
 
 def rb_msvc_get_msbuild_type_flag():
     if Base.compiler == Base.COMPILER_WIN_MSVC2010:
@@ -881,15 +912,102 @@ def rb_msvc_copy_custom_project(script, dest):
     rb_yellow_ln(dest)
     if not os.path.exists(dest):
         src = rb_get_script_dir(script) +"/" +rb_get_compiler_shortname()
-        shutil.copytree(src, dest)
+        shutil.copytree(os.path.normpath(src), os.path.normpath(dest))
 
+
+# MingW helpers
+# ---------------------------------------------------------------------------
+# converts a windows style dir/path to mingw path
+# e.g. c:\roxlu\tools\build_system\
+#      /c/roxlu/tools/build_system
+def rb_mingw_windows_path_to_mingw_path(path): 
+    fullpath = "/" +os.path.abspath(path)
+    fullpath = fullpath.replace(":","");
+    fullpath = fullpath.replace("\\", "/")
+    return fullpath
+
+# converts an array with paths to mingw like paths    
+def rb_mingw_windows_paths_to_mingw_paths(paths):
+    result = []
+    for p in paths:
+        result.append(rb_mingw_windows_path_to_mingw_path(os.path.normpath(p)))
+    return result
+
+# get the path to the yasm.exe dir that we should use in our PATH variable
+def rb_mingw_get_yasm_path():
+    if not rb_is_win():
+        return ""
+    if rb_is_32bit():
+        return rb_get_tools_path() +"yasm\\win32\\"
+    elif rb_is_64bit():
+        return rb_get_tools_path() +"yasm\\win64\\"
+    else:
+        rb_red_ln("No yasm path for other then 32 and 64 bit")
+        return ""
+
+# run commands in a mingw shell where all mingw compilers and paths are available
+# see the x264 which is the first script that uses this
+def rb_mingw_execute_shell_commands(script, commands, envvars = None):
+
+    cmd = list(commands)
+
+    curr_path = os.environ["PATH"] 
+
+    # Make sure that we only use our installed mingw version (changing PATH here)
+    yasm_path = rb_mingw_get_yasm_path()
+    mwd = os.path.normpath(rb_get_tools_path() +"mingw/") +"\\"
+    msd = mwd +"msys\\1.0\\bin\\"
+
+    env_vars = [
+        mwd +"bin",
+        mwd +"msys\\1.0\\bin",
+        rb_mingw_get_yasm_path()
+        ]
+
+    mingw_paths = rb_mingw_windows_paths_to_mingw_paths(env_vars)
+    new_mingw_path = ":".join(mingw_paths)
+    new_win_path = ";".join(env_vars);
+
+    cmd.insert(0, "export PATH=" +new_mingw_path +"")
+
+    base_commands = (
+        "SET PATH=" +new_win_path +"",
+        msd +"sh.exe -c \"./tmp.sh\"",
+        "SET PATH=" +curr_path
+        )
+
+    cmd = rb_merge_shell_commands_with_envvars(cmd, envvars, 1)
+
+    # create the shell script
+    if rb_is_win():
+        d = rb_get_base_path()
+
+        # Just a tiny wrapper which makes sure that our `cmd` (commands) get execute by a `sh` shell
+        f = open(d + "tmp.bat", "w+")
+        f.write("\n".join(base_commands))
+        f.close()
+        os.chmod(d + "tmp.bat", 0777)
+        
+        # tmp.sh contains the shell commands
+        msf = open(d +"tmp.sh", "w+")
+        msf.write("\n".join(cmd))
+        msf.close()
+
+        subprocess.call("tmp.bat")
+
+    else:
+        rb_red_ln("rb_minw_execute_shell_commands is not support for non-win platforms")
+    
 
 # CMake helpers
 # ---------------------------------------------------------------------------
-def rb_cmake_build(script):
+
+# build, after calling rb_cmake_configure(), the target is the target you want to build;
+# for most cases you can leave target "install"
+def rb_cmake_build(script, target = "install"):
     
     # Create the cmake command
-    cmd = rb_cmake_get_executable() +" --build . --target install "
+    cmd = rb_cmake_get_executable() +" --build . --target  " +target
     if Base.build_type == Base.BUILD_TYPE_RELEASE: 
         cmd += " --config Release "
     elif Base.build_type == Base.BUILD_TYPE_DEBUG:
