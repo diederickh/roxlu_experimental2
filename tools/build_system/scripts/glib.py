@@ -5,7 +5,7 @@ class Glib(Base):
     
     def __init__(self):
         self.name = "glib"
-        self.version = "2.36"
+        self.version = "2.36.4"
         self.compilers = [Base.COMPILER_MAC_GCC, Base.COMPILER_MAC_CLANG]  # , Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012]
         self.arch = [Base.ARCH_M32, Base.ARCH_M64]
         self.dependencies = []
@@ -13,9 +13,9 @@ class Glib(Base):
 
     def download(self):
         rb_download_and_extract(self, 
-                                "http://ftp.gnome.org/pub/gnome/sources/glib/2.36/glib-2.36.4.tar.xz",
-                                "glib-" +self.version +".4.tar.gz", 
-                                "glib-" +self.version +".4")
+                                "http://ftp.gnome.org/pub/gnome/sources/glib/2.36/glib-" +self.version +".tar.xz",
+                                "glib-" +self.version +".tar.xz", 
+                                "glib-" +self.version)
 
 
     def build(self):

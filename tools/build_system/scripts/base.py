@@ -67,7 +67,12 @@ def rb_download(script, url, outfile):
     os.system("curl -L " +url +" -o " +rb_get_download_dir(script) +outfile)
 
 def rb_move_file(src, dest):
-    os.system("mv " +os.path.normpath(src) + " " +os.path.normpath(dest))
+    #if os.path.exists(src) and not os.path.exists(dest):
+    if os.path.exists(dest):
+        rb_green_ln(dest)
+        os.remove(dest)
+    rb_yellow_ln(src +" --> " +dest)
+    shutil.move(src, dest)
 
 # make sure that the given directory exists
 # recreate: when set to `True` we will first remove the directory if exists
@@ -129,6 +134,8 @@ def rb_extract(script, file, extractedDirName = None):
             ext1 = parts[len(parts)-1]
             if ext0 == "tar" and ext1 == "gzip":
                 f = "tar.gz"
+            elif ext0 == "xz":
+                f = "xz"
         else:
             rb_red_len("@todo we need to handle this type")
 
@@ -141,11 +148,22 @@ def rb_extract(script, file, extractedDirName = None):
         print t 
         sys.exit(2)
 
+
     if f == "tar.gz":
         os.system("cd " +rb_get_download_dir(script) + " && " +"tar -zxvf " +file )
     elif f == "tar.bz2":
         os.system("cd " +rb_get_download_dir(script) + " && " +"tar -jxvf " +file )
+    elif f == "xz":
+        if rb_is_win():
+            tarfile = file.replace(".xz","")
+            cmd = (
+                "cd " +rb_get_download_dir(script),
+                "xz -d " +file,
+                "tar -xvf " +tarfile
+                )
+            rb_mingw_execute_shell_commands(script, cmd)
         
+
     if not extractedDirName == None:
         extracted_dir = rb_get_download_dir(script) +extractedDirName;
         if os.path.exists(extracted_dir):
@@ -334,18 +352,18 @@ def rb_install_get_dir():
     if Base.build_type == Base.BUILD_TYPE_DEBUG:
         flag = "d"
 
-    return Base.install_prefix +"/" +rb_get_triplet() +flag + "/"
+    return os.path.normpath(Base.install_prefix +"/" +rb_get_triplet() +flag) +"/"
 
 
 # get the full path to a lib file for the current install/build dir
 def rb_install_get_lib_file(filename):
-    return rb_install_get_dir() +"lib/" +filename
+    return os.path.normpath(rb_install_get_dir() +"lib/" +filename)
 
 def rb_install_lib_file_exists(filename):
     return os.path.exists(os.path.normpath(rb_install_get_lib_file(filename)))
 
 def rb_install_get_bin_file(filename):
-    return rb_install_get_bin_dir() +"/" +filename
+    return os.path.normpath(rb_install_get_bin_dir() +"/" +filename)
 
 def rb_install_bin_file_exists(filename):
     return os.path.exists(rb_install_get_bin_file(filename))
@@ -353,7 +371,7 @@ def rb_install_bin_file_exists(filename):
 
 # get the full path to a header file for the current install/build dir
 def rb_install_get_include_file(filename):
-    return rb_install_get_dir() + "include/" +filename
+    return os.path.normpath(rb_install_get_dir() + "include/" +filename)
 
 # the deploy dir is where all the compiled files are copied to using the script.copy() function
 # this is different from the rb_install_get_dir(), as the rb_install_get_dir() is used as 
@@ -370,7 +388,7 @@ def rb_deploy_get_dir():
 # if you library needs to find some includes, make sure to use this,
 # and not e.g. rb_get_include_dir
 def rb_deploy_get_include_dir():
-    return rb_deploy_get_dir() +"include/"
+    return os.path.normpath(rb_deploy_get_dir() +"include") +"/"
 
 # if you need to add an extra library path in your build() function, 
 # use this function to get the correct path for the current build
@@ -500,13 +518,14 @@ def rb_get_autotools_environment_vars():
              "LDFLAGS"    : "\"" +rb_get_ldflags()     +"\"", 
              "CPPFLAGS"   : "\"" +rb_get_cppflags()    +"\"",
              "CC"         : "\"" +rb_get_cc()          +"\"",
-             "CXX"        : "\"" +rb_get_cxx()         +"\""
+             "CXX"        : "\"" +rb_get_cxx()         +"\"",
+             "PKG_CONFIG_PATH" : "\"" +os.path.normpath(rb_install_get_lib_dir() +"pkgconfig") +"\""
              }
 
 
     if rb_is_mac():
         vars['PATH'] ="\"" +rb_install_get_bin_dir() +":${PATH}\""
-        vars['PKG_CONFIG_PATH'] = "\"" +rb_install_get_lib_dir() +"pkgconfig\""
+#    vars['PKG_CONFIG_PATH'] = "\"" +rb_install_get_lib_dir() +"pkgconfig\""
 
     return vars
 
@@ -634,16 +653,18 @@ def rb_tools_file_exists(file):
 
 # Copies a file from the script (sources) dir to the download dir for the given script
 # The file is copied from scripts/[script.name]/[file], to downloads/[script.name], or 
-# the other dest given
-def rb_copy_to_download_dir(script, src, dest = None):
+# the other destdir given
+# eg. rb_copy_to_download_dir(self, "libFLAC_dynamic.vcxproj", dd +"src/libFLAC/")
+def rb_copy_to_download_dir(script, src, destdir = None):
     s = rb_get_script_dir(script) +"/" +src
     if not os.path.exists(s):
         rb_red_ln("Cannot find the file: " +src)
 
     d = src
-    if not dest == None:
-        d = dest
-    d = rb_get_download_dir(script) +src
+    if destdir:
+        d = destdir +src
+    else:
+        d = rb_get_download_dir(script) +src
 
     if not os.path.exists(d):
         rb_red_ln(s)
@@ -668,7 +689,7 @@ def rb_download_dir_copy_file_internal(script, src, dest):
     dd = rb_get_download_dir(script)
     src = os.path.normpath(dd +src)
     dest = os.path.normpath(dd +dest)
-
+    rb_yellow_ln(src +" --> " +dest)
     os.system(rb_get_copy_command() +" " +src +" " +dest)
 
 # returns a file relative to the download dir for the given script
@@ -853,7 +874,7 @@ def rb_msvc_get_msbuild_type_flag():
 
 def rb_vs2012_get_msbuild_type_flag():
     if Base.build_type == Base.BUILD_TYPE_DEBUG:
-        return "/p:configuration=Debug"
+        return "/p:configuration=Debug "
     elif Base.build_type == Base.BUILD_TYPE_RELEASE:
         return "/p:configuration=Release"
     else:
@@ -862,7 +883,8 @@ def rb_vs2012_get_msbuild_type_flag():
        
 def rb_vs2010_get_msbuild_type_flag():
     if Base.build_type == Base.BUILD_TYPE_DEBUG:
-        return "/p:configuration=Debug"
+        return "/p:configuration=Debug "
+
     elif Base.build_type == Base.BUILD_TYPE_RELEASE:
         return "/p:configuration=Release"
     else:
@@ -886,7 +908,23 @@ def rb_vs2010_upgrade_to_vs2012(script, slndir, sln):
 
     rb_execute_shell_commands(script, convert)
     
-       
+def rb_msvc_setup_build_environment():
+    # nasm
+    rb_set_environment_vars()
+
+    # add the deploy include dir so libs can find the installed headers
+    os.environ["INCLUDE"] += ";" +rb_deploy_get_include_dir() 
+    
+# experimental; it seems the INCLUDE is not always used (didn't work when compiling flac)
+def rb_msvc_get_environment_vars():
+    env = (
+        "SET CL=/I" +rb_deploy_get_include_dir() +" /Z7",
+#        "SET INCLUDE=" +rb_deploy_get_include_dir() +";%INCLUDE%"
+        )
+    return env
+
+
+
 def rb_msvc_get_setvars():
     if Base.compiler == Base.COMPILER_WIN_MSVC2010:
         return Base.base_dir +"/tools/vs2010_vcvars32.bat"
@@ -917,6 +955,16 @@ def rb_msvc_copy_custom_project(script, dest):
 
 # MingW helpers
 # ---------------------------------------------------------------------------
+
+def rb_mingw_windows_path_to_cygwin_path(path):
+    return "/cygdrive" +rb_mingw_windows_path_to_mingw_path(path)
+
+def rb_mingw_windows_paths_to_cygwin_paths(paths):
+    result = []
+    for p in paths:
+        result.append(rb_mingw_windows_path_to_cygwin_path(os.path.normpath(p)))
+    return result
+
 # converts a windows style dir/path to mingw path
 # e.g. c:\roxlu\tools\build_system\
 #      /c/roxlu/tools/build_system
@@ -945,8 +993,59 @@ def rb_mingw_get_yasm_path():
         rb_red_ln("No yasm path for other then 32 and 64 bit")
         return ""
 
+def rb_mingw_build_with_autotools(script, flags = None):
+    ef = flags if flags else ""
+    auto_env = rb_get_autotools_environment_vars()
+    cmd = [
+        "cd " +rb_mingw_windows_path_to_cygwin_path(os.path.abspath(rb_get_download_dir(script))),
+        "./configure " +rb_get_configure_flags() +" " +ef,
+        "make clean",
+        "make",
+        "make install"
+        ]
+    rb_mingw_execute_shell_commands(script, cmd, auto_env)
+
+
+#def rb_mingw_get_msys_bin_path():
+#    return os.path.normpath(rb_get_tools_path() +"msys\\bin") +"\\"
+
+def rb_mingw_get_mingw_base_path():
+    return os.path.normpath(rb_get_tools_path() +"mingw\\mingw32") +"\\"
+
+def rb_mingw_get_mingw_bin_path():
+    return os.path.normpath(rb_mingw_get_mingw_base_path() +"bin") +"\\"
+
+def rb_mingw_get_cygwin_bin_path():
+    return os.path.normpath(rb_get_tools_path() +"cygwin\\bin") +"\\"
+
+
+# EXPERIMENTAL
+def rb_mingw_create_pkgconfig_file(name, version, ldflags):
+    str = (
+        "prefix=" +rb_deploy_get_dir(),
+        "exec_prefix=${prefix}",
+        "libdir=${prefix}/lib",
+        "includedir=${prefix}/include",
+        "",
+        "Name:" +name,
+        "Description: " +name,
+        "Version: " +version, 
+        "Libs:-L${exec_prefix}/lib " +ldflags,
+        "Cflags: -I${exec_prefix}/include"
+           )
+
+    fname = rb_mingw_get_pkgconfig_script_path() +name +".pc"
+    f = open(fname, "w+")
+    f.write("\n".join(str))
+    f.close()
+    rb_yellow_ln("\n".join(str))
+
+def rb_mingw_get_pkgconfig_script_path():
+    return os.path.normpath(rb_install_get_lib_dir() +"/pkgconfig") +"\\"
+
 # run commands in a mingw shell where all mingw compilers and paths are available
-# see the x264 which is the first script that uses this
+# see the x264 which is the first script that uses this. we are using cygwin and 
+# mingw32-w64 and make sure that all environment vars are setup for you
 def rb_mingw_execute_shell_commands(script, commands, envvars = None):
 
     cmd = list(commands)
@@ -955,24 +1054,29 @@ def rb_mingw_execute_shell_commands(script, commands, envvars = None):
 
     # Make sure that we only use our installed mingw version (changing PATH here)
     yasm_path = rb_mingw_get_yasm_path()
-    mwd = os.path.normpath(rb_get_tools_path() +"mingw/") +"\\"
-    msd = mwd +"msys\\1.0\\bin\\"
+#   mingw_base_dir = rb_mingw_get_mingw_base_path()
+#   mingw_bin_dir =  rb_mingw_get_mingw_bin_path()
+    cygwin_bin_dir = rb_mingw_get_cygwin_bin_path()
+    install_dir = os.path.normpath(rb_install_get_bin_dir())
 
-    env_vars = [
-        mwd +"bin",
-        mwd +"msys\\1.0\\bin",
-        rb_mingw_get_yasm_path()
+    env_paths = [
+        cygwin_bin_dir,
+#        mingw_base_dir,
+#        mingw_bin_dir,
+        yasm_path,
+        install_dir
         ]
 
-    mingw_paths = rb_mingw_windows_paths_to_mingw_paths(env_vars)
+    mingw_paths = rb_mingw_windows_paths_to_cygwin_paths(env_paths)
     new_mingw_path = ":".join(mingw_paths)
-    new_win_path = ";".join(env_vars);
+    new_win_path = ";".join(env_paths);
 
     cmd.insert(0, "export PATH=" +new_mingw_path +"")
 
     base_commands = (
         "SET PATH=" +new_win_path +"",
-        msd +"sh.exe -c \"./tmp.sh\"",
+        "SET SHELLOPTS=igncr",
+        cygwin_bin_dir +"sh.exe -c \"./tmp.sh\"",
         "SET PATH=" +curr_path
         )
 

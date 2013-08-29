@@ -16,6 +16,21 @@ class GetText(Base):
                                 "gettext-" +self.version +".tar.gz", 
                                 "gettext-" +self.version)
 
+        """
+        if rb_is_win():
+
+            rb_download_and_extract(self, 
+                                    "http://winkde.org/pub/kde/ports/win32/repository-4.8/win32libs/gettext-vc100-0.18-src.tar.bz2",
+                                    "gettext-vc100-0.18-src.tar.bz2"
+                                    "gettext-vc100-0.18")
+
+            else:
+                rb_download_and_extract(self, 
+                                "http://ftp.gnu.org/pub/gnu/gettext/gettext-" +self.version +".tar.gz",
+                                "gettext-" +self.version +".tar.gz", 
+                                "gettext-" +self.version)
+                                """
+
 
     def build(self):
         if rb_is_mac():
@@ -27,14 +42,20 @@ class GetText(Base):
                    """
             rb_build_with_autotools(self)
         else:
-            rb_red_ln("@todo pkgconfig")
+            opts = [ 
+                "-DICONV_LIBRARIES=libiconv.lib",
+                ]
+            rb_cmake_configure(self, opts)
+            rb_cmake_build(self, "gettext-runtime")
+            rb_red_ln("@todo gettext --")
 
 
     def deploy(self):
         if rb_is_mac():
-            rb_red_ln("@todo pkgconfig ")
+            rb_red_ln("@todo gettext")
         else:
-            rb_red_ln("@todo pkgconfig ")
+            rb_red_ln("@todo gettext")
+
 
 
 

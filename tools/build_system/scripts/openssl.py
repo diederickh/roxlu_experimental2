@@ -37,6 +37,8 @@ class OpenSSL(Base):
 
         elif rb_is_msvc():
             
+            # @todo - try to use rb_msvc_setup_build_environment() which sets nasm + include (not the download dir include though)
+
             perl_version = subprocess.check_output(["perl", "--version"])
             if "activestate" not in perl_version.lower():
                 rb_red_ln("You must install the ActiveState perl version")

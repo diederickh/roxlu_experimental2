@@ -6,7 +6,7 @@ class PkgConfig(Base):
     def __init__(self):
         self.name = "pkgconfig"
         self.version = "0.28"
-        self.compilers = [Base.COMPILER_MAC_GCC, Base.COMPILER_MAC_CLANG]  # , Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012]
+        self.compilers = [Base.COMPILER_MAC_GCC, Base.COMPILER_MAC_CLANG, Base.COMPILER_WIN_MSVC2010]  # , Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012]
         self.arch = [Base.ARCH_M32, Base.ARCH_M64]
         self.dependencies = []
 
@@ -21,7 +21,7 @@ class PkgConfig(Base):
         if rb_is_mac():
             rb_build_with_autotools(self, "--with-internal-glib")
         else:
-            rb_red_ln("@todo pkgconfig")
+            rb_mingw_build_with_autotools(self, "--host=i686-w64-mingw32 --with-internal-glib")
 
     def is_build(self):
         return rb_install_bin_file_exists("pkg-config")

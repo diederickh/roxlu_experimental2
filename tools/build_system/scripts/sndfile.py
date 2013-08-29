@@ -7,7 +7,7 @@ class SndFile(Base):
     def __init__(self):
         self.name = "sndfile"
         self.version = "1.0.25"
-        self.compilers = [Base.COMPILER_MAC_GCC, Base.COMPILER_MAC_CLANG]  # , Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012]
+        self.compilers = [Base.COMPILER_MAC_GCC, Base.COMPILER_MAC_CLANG, Base.COMPILER_WIN_MSVC2010]  # , Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012]
         self.arch = [Base.ARCH_M32, Base.ARCH_M64]
 
         if not rb_is_win():
@@ -39,13 +39,17 @@ class SndFile(Base):
         elif rb_is_win():
 
             dd = rb_get_download_dir(self)
+            rb_mingw_create_pkgconfig_file("ogg", "1.3.1", "-logg")
+            rb_mingw_create_pkgconfig_file("vorbisenc", "1.3.3", "-lvorbisenc")
+            rb_mingw_create_pkgconfig_file("vorbis", "1.3.3", "-lvorbis")
+            rb_mingw_create_pkgconfig_file("flac", "1.3.0", "-lFLAC_dynamic")
 
+            
             # execute commands in the mingw environment
             cmd = (
                 "cd " +dd,
-#                "export OGG_LIBS=\"-L" +rb_deploy_get_lib_dir() +"\"",
-#                "export OGG_CFLAGS=\"-I" +rb_deploy_get_include_dir() +"\"",
-                "./configure " +rb_get_configure_prefix_flag()  +" --enable-static=no  --enable-shared=yes",
+                "./configure " +rb_get_configure_prefix_flag()  +" --enable-static=no --enable-shared=yes --host=i686-w64-mingw32",
+                "make clean",
                 "make V=1",
                 "make install"
                 )

@@ -35,6 +35,7 @@ from scripts.glib import Glib
 from scripts.ffi import FFI
 from scripts.gettext import GetText
 from scripts.iconv import Iconv
+from scripts.flac import Flac
 
 from colorama import init, Fore, Back, Style
 init()
@@ -83,13 +84,14 @@ ins_glib = Glib()
 ins_ffi = FFI()
 ins_gettext = GetText()
 ins_iconv = Iconv()
+ins_flac = Flac()
 
 installers = [ins_glfw, ins_jansson, ins_jpeg, ins_tiff, ins_png, ins_zlib, 
               ins_openssl, ins_lamemp3, ins_yasm, ins_uv, ins_curl, ins_pcre,
               ins_ogg, ins_vorbis, ins_theora, ins_speex, ins_mysqlc,
               ins_freetype, ins_autoconf, ins_automake, ins_libtool, ins_x264,
               ins_glew, ins_portaudio, ins_sndfile, ins_pkgconfig, ins_glib, ins_ffi,
-              ins_gettext, ins_iconv]
+              ins_gettext, ins_iconv, ins_flac]
 
 #installers.sort(key=lambda i:i.name)
 
