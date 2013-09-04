@@ -41,3 +41,13 @@ void TwitterStatusesFilter::follow(std::string fol) {
   query_parameters["follow"] = fol;
 }
 
+//-------------------------------------------------------------------------------
+TwitterStatusesUserTimeline::TwitterStatusesUserTimeline() 
+  :count(0)
+  ,trim_user(true)
+  ,exclude_replies(true)
+  ,contributor_details(false)
+  ,include_rts(false)
+{
+}
+

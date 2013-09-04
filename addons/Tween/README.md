@@ -10,12 +10,20 @@ tween any object you like.
 
 
 ````C
+#include <tween/Tween.h>
+
 Tween<float> my_tween;
 my_tween.set(0.0, 1000.0, 5000, 0); // tween from 0.0 to 1000 in 5000 millis
 
 Tween<Color> my_tween;
 Color from(0.0, 0.0, 1.0);
 color to(1.0, 0.0, 0.0);
-my_tween.set(from, to, 5000, 0); // tween from color `from` to color `to`
+my_tween.set(from, to, 5000, 0, TWEEN_IN_EXPO); // tween from color `from` to color `to`
+my_tween.start();
+
+void update() {
+     my_tween.update();
+     Color curr = my_tween.getValue();
+}
                      
 ````

@@ -6,6 +6,8 @@
 #include <vector>
 
 enum TweenFunction {
+  TWEEN_NONE,
+
   TWEEN_LINEAR,
 
   TWEEN_IN_QUAD,
@@ -56,7 +58,7 @@ class Tween {
   Tween();
   ~Tween();
 
-  void set(T from, T to, double duration, double delay, TweenFunction tf = TWEEN_LINEAR);
+  void set(T from, T to, double duration, double delay, TweenFunction tf = TWEEN_NONE);
   void setType(TweenFunction tf);
   void start();
   void update();
@@ -100,6 +102,7 @@ Tween<T>::Tween()
   ,duration(0)
   ,timeout(0)
   ,delay(0)
+  ,type(TWEEN_NONE)
 {
 }
 
@@ -112,7 +115,15 @@ Tween<T>::~Tween() {
 
 template<class T>
 void Tween<T>::set(T from, T to, double duration, double delay, TweenFunction tf) {
-  
+
+  // only change when not set yet and not given
+  if(tf == TWEEN_NONE && type == TWEEN_NONE) {
+    this->type = TWEEN_LINEAR;
+  }
+  else {
+    this->type = tf;
+  }
+
   this->from = from;
   this->value = from;
   this->to = to;
@@ -121,7 +132,6 @@ void Tween<T>::set(T from, T to, double duration, double delay, TweenFunction tf
   this->delay = delay;
   this->ready = true;
   this->timeout = 0;
-  this->type = tf;
 
 }
 
@@ -357,6 +367,7 @@ void Tween<T>::update() {
 
       // Elastic
     case TWEEN_IN_ELASTIC: {
+      printf("ELAS\n");
       t /= duration;
       float p = duration * 0.3f;
       float a = dir;

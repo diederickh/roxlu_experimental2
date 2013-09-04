@@ -50,6 +50,10 @@ class JPEG(Base):
         
         if rb_is_msvc():
             rb_deploy_lib(bd + "libjpeg.lib")
+        elif rb_is_unix():
+            rb_deploy_lib(rb_install_get_lib_file("libjpeg.a"))
+            rb_deploy_lib(rb_install_get_lib_file("libjpeg.dylib"))
+            rb_deploy_lib(rb_install_get_lib_file("libjpeg.8.dylib"))
 
         rb_deploy_header(bd +"jpeglib.h")
         rb_deploy_header(bd +"jconfig.h")

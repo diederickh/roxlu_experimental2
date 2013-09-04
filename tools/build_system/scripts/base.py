@@ -64,7 +64,9 @@ class Base(object):
 
 # download a source file into the download dir for the given script
 def rb_download(script, url, outfile):
+    rb_yellow_ln("Downloading: " +url)
     os.system("curl -L " +url +" -o " +rb_get_download_dir(script) +outfile)
+    rb_green_ln("--------")
 
 def rb_move_file(src, dest):
     #if os.path.exists(src) and not os.path.exists(dest):
@@ -97,9 +99,9 @@ def rb_ensure_tools_dir(dirname):
 # returns the directory into which the sources are downloaded
 def rb_get_download_dir(script = None):
     if script is None:
-        return Base.download_dir
+        return os.path.abspath(Base.download_dir) +"/"
     else:
-        return Base.download_dir +"/" +script.name +"/"
+        return os.path.abspath(Base.download_dir +"/" +script.name) +"/"
 
 # get the directory where the build scripts are stored; or the build script specific one when a script is given
 def rb_get_script_dir(script = None):
@@ -432,6 +434,11 @@ def rb_get_cxxflags():
     if rb_is_debug():
         cf += " -g -O0 "
             
+    if rb_is_win():
+        cf += " -I" +os.path.normpath(rb_deploy_get_include_dir()) +" "
+    else:
+        cf += " -I" +rb_install_get_include_dir() +" "
+
     return cf
 
 
@@ -537,14 +544,10 @@ def rb_get_autotools_environment_vars():
 
 def rb_build_with_autotools(script, flags = None, options = True, environmentVars = None):
     # extra custom flags
-    ef = ""
-    if not flags == None:
-        ef = flags
+    ef = "" if flags == None else flags
 
     # add the CXX,CPP,LDFLAGS etc..
-    opts = ""
-    if options:
-        opts = " " + rb_get_configure_options()
+    opts = "" if not options else  " " + rb_get_configure_options()
 
     cmd = []
 
@@ -561,6 +564,7 @@ def rb_build_with_autotools(script, flags = None, options = True, environmentVar
     cmd.append("set -x && ./configure " +rb_get_configure_flags() +ef +" " +" " +opts)
     cmd.append("make clean && make && make install")
     rb_execute_shell_commands(script, cmd, env)
+
 
 def rb_arch_string(arch):
     if arch == Base.ARCH_M32:
@@ -724,17 +728,21 @@ def rb_deploy_dll(dll):
     else:
         rb_red_ln("File not found " +dll)
 
-    
 def rb_deploy_lib(lib):
-    if os.path.exists(lib):
-        d = rb_deploy_get_dir() +"/lib/"
-        rb_ensure_dir(d)
-        #shutil.copyfile(os.path.normpath(dll), os.path.normpath(d))
-        os.system(rb_get_copy_command()  +os.path.normpath(lib) +" " +os.path.normpath(d))
-        rb_yellow_ln(lib +" >> " +os.path.normpath(lib) +" " +os.path.normpath(d))
-    else:
+    to_copy = lib
+    if  "*" in lib:
+        to_copy = lib 
+    elif not os.path.exists(lib):
         rb_red_ln("File not found " +lib)
-    
+        return 
+
+
+    d = rb_deploy_get_dir() +"/lib/"
+    rb_ensure_dir(d)
+    #shutil.copyfile(os.path.normpath(dll), os.path.normpath(d))
+    os.system(rb_get_copy_command()  +os.path.normpath(to_copy) +" " +os.path.normpath(d))
+    rb_yellow_ln(to_copy +" >> " +os.path.normpath(to_copy) +" " +os.path.normpath(d))
+
 
 # copy one specific header
 # rb_deploy_header(rb_install_get_include_file("x264.h"))
@@ -772,7 +780,8 @@ def rb_deploy_headers(dir, files = None, subdir = None):
                 rb_yellow_ln("xcopy /y " +os.path.normpath(dir +"\*.h") +"  " +os.path.normpath(d))
                 rb_yellow_ln(dir)
             else:
-                os.system("cp " +os.path.normpath(dir +"/*.h") +" " +os.path.normpath(d))
+                os.system("cp -r " +os.path.normpath(dir) +"/ " +os.path.normpath(d)) 
+
         else:
             for f in files:
                 rb_deploy_header(dir +"/" +f, subdir)

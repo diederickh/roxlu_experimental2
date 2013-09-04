@@ -12,6 +12,7 @@ class FFI(Base):
         self.info = "When version changes, update the build() function of Glib too. It uses a hardcoded version"
 
     def download(self):
+        return 
         rb_download_and_extract(self, 
                                 "ftp://sourceware.org/pub/libffi/libffi-" +self.version +".tar.gzip",
                                 "libffi-" +self.version +".tar.gzip", 

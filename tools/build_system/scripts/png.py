@@ -8,6 +8,7 @@ class PNG(Base):
         self.compilers = [Base.COMPILER_MAC_GCC, Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012]
         self.arch = [Base.ARCH_M32, Base.ARCH_M64]
         self.dependencies = ["zlib"]
+        self.info = "The mac build is not using our own custom zlib! "
 
     def download(self): 
         rb_download_and_extract(self, 
@@ -17,11 +18,22 @@ class PNG(Base):
     def build(self):
         
         if rb_is_mac():
+      
+            ef = ("--with-zlib-prefix=" +rb_install_get_dir(),
+                  "--with-sysroot=" +rb_install_get_dir())
 
-            ef = ("--with-zlib-prefix=" +rb_deploy_get_dir(),
-                  "--with-sysroot=" +rb_deploy_get_dir())
+            dd = rb_get_download_dir(self)
+            cmd = (
+                "cd " +dd,
+                "./configure "+ rb_get_configure_prefix_flag(),
+                "make clean && make && make install"
+                )
 
-            rb_build_with_autotools(self, " ".join(ef))
+            rb_execute_shell_commands(self, cmd)
+
+            # something goes wrong with zlib version; the detected version is old/wrong
+            #rb_build_with_autotools(self, " ".join(ef))
+
         elif rb_is_msvc():
 
             # copy our custom project
@@ -52,7 +64,10 @@ class PNG(Base):
             id = rb_install_get_dir()
             rb_deploy_lib(rb_install_get_lib_file("libpng16.a"))
             rb_deploy_lib(rb_install_get_lib_file("libpng16.16.dylib"))
+            rb_deploy_lib(rb_install_get_lib_file("libpng.dylib"))
+            rb_deploy_lib(rb_install_get_lib_file("libpng.a"))
             rb_deploy_headers(dir = rb_install_get_include_dir() +"libpng16", subdir = "libpng16")
+            rb_deploy_headers(rb_install_get_include_dir(), ["png.h", "pngconf.h", "pnglibconf.h"])
 
 
             

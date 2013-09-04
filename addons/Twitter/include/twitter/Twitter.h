@@ -23,7 +23,7 @@ class Twitter {
   void apiStatusesFilter(TwitterStatusesFilter& param, httpconnection_event_callback cbEvent, void* user);
   void apiStatusesUpdate(TwitterStatusesUpdate& param, httpconnection_event_callback cbEvent, void* user);
   void apiStatusesUpdateWithMedia(TwitterStatusesUpdate& param, httpconnection_event_callback cbEvent, void* user);
-
+  void apiStatusesUserTimeline(TwitterStatusesUserTimeline& param, httpconnection_event_callback cbEvent, void* user);
  private:
   void setDefaultParams(TwitterCallParams& p);
   void makeAPICall(TwitterCallParams& p);                                                                               /* helper that creates an request object and makes sure the request is made..*/

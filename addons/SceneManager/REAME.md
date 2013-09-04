@@ -21,7 +21,7 @@ _Handling a state change, you must set the state to STATE_ACTIVE yourself!_
 
 ````c++
 void MyScene::setState(int st) {
-  if(state == STATE_ENTER) {
+  if(st == STATE_ENTER) {
      state = STATE_ACTIVE; 
   }     
 }

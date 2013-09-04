@@ -209,6 +209,32 @@ macro(roxlu_app_add_source_file file)
   roxlu_add_source_file(${roxlu_app_src_dir}/${file})
 endmacro(roxlu_app_add_source_file)
 
+# Add a list of file at once; use quotes: roxlu_app_add_source_files("${my_list_with_source_files}")
+macro(roxlu_app_add_source_files files) 
+    foreach(file_name in ${files})
+      if(EXISTS ${file_name})
+        roxlu_add_source_file(${file_name})
+      endif()
+    endforeach()
+endmacro()
+
+# Add a with paths to libraries you want to link with, call with quotes around the libs variable: roxlu_app_add_libs("${mylibs}")
+macro(roxlu_app_add_libs libs)
+  foreach(lib_name in ${libs})
+    if(EXISTS ${lib_name})
+      roxlu_add_lib(${lib_name})
+    endif()
+  endforeach()
+endmacro()
+
+# add a dependency project (handy if you generate some dylibs/dlls) that
+# your application needs. calling roxlu_app_add_dependency which basically
+# just call add_dependencies() on your application target. See cmake doc
+# for more info
+macro(roxlu_app_add_dependency dep)
+  list(APPEND roxlu_app_dependencies ${dep})
+endmacro()
+
 
 # function(JOIN VALUES GLUE OUTPUT)
 #   string (REPLACE ";" "${GLUE}" _TMP_STR "${VALUES}")
@@ -242,6 +268,12 @@ macro(roxlu_install_app)
       # ---
 
       add_executable(${roxlu_app_name} ${roxlu_source_files} ${roxlu_lib_source_files})
+
+      # make sure that the dependencies have been compiled before linking!
+      if(${roxlu_app_dependencies})
+        add_dependencies(${roxlu_app_name} ${roxlu_app_dependencies})
+      endif()
+
     endif()
 
 
@@ -548,6 +580,7 @@ if(ROXLU_64BIT)
   set(CMAKE_OSX_ARCHITECTURES "x86_64")
   set(roxlu_arch "x86_64")
 endif(ROXLU_64BIT)
+
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(roxlu_compiler "clang")
