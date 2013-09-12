@@ -1,3 +1,7 @@
+"""
+on mac you probably want to change the rpath to use rtmpdump:
+install_name_tool -change /usr/local/lib/librtmp.0.dylib @executable_path/librtmp/librtmp.dylib rtmpdump
+"""
 import os
 from base import *
 
@@ -14,13 +18,12 @@ class Rtmp(Base):
         rb_git_clone(self, "git://git.ffmpeg.org/rtmpdump")
 
     def build(self):
-        return True
         if rb_is_unix():
             dd = rb_get_download_dir(self)
             env = rb_get_autotools_environment_vars()
             ef = (
                 "cd " +dd,
-                "make sys=darwin"
+                "make SYS=darwin"
                 )
             rb_execute_shell_commands(self, ef, env)
         return True

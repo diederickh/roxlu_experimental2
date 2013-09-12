@@ -1169,7 +1169,7 @@ def rb_cmake_configure(script, opts = None):
             "cd " +dcmake,
             cmake_command
             ]
-        rb_execute_shell_commands(script, cmd)
+        rb_execute_shell_commands(script, cmd, rb_get_autotools_environment_vars())
       
 
     return cmd

@@ -24,6 +24,10 @@ class AutoMake(Base):
             rb_red_ln("automake is only for unices")
 
 
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_bin_file_exists("automake")
+
     def deploy(self):
         if rb_is_msvc():
             rb_red_ln("automake is only for unices")
