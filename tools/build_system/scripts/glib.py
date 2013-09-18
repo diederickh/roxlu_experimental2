@@ -8,7 +8,10 @@ class Glib(Base):
         self.version = "2.36.4"
         self.compilers = [Base.COMPILER_MAC_GCC, Base.COMPILER_MAC_CLANG]  # , Base.COMPILER_WIN_MSVC2010, Base.COMPILER_WIN_MSVC2012]
         self.arch = [Base.ARCH_M32, Base.ARCH_M64]
-        self.dependencies = []
+        if rb_is_unix():
+            self.dependencies = ["pkgconfig", "automake", "libtool", "autoconf", "gettext"]
+        else:
+            self.dependencies = []
         self.info = "on mac we need to figure out why the build complaints it cannot find automake"
 
     def download(self):

@@ -603,6 +603,12 @@ def rb_merge_shell_commands_with_envvars(commands, envvars, style = 0):
         
     return cmd
 
+def rb_get_export_cmd(name, value):
+    if rb_is_unix():
+        return "export " +name +"=\"" +value +"\""
+    else:
+        rb_yellow_ln("@todo rb_get_export_cmd() not implemented")
+
 # environmentVars: dictionary with environment vars we set
 def rb_execute_shell_commands(script, commands, environmentVars = None):
     

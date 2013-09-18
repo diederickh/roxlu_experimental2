@@ -43,7 +43,11 @@ from scripts.flvmeta import FLVMeta
 from scripts.h264bitstream import H264BitStream
 from scripts.pixman import Pixman
 from scripts.cairo import Cairo
+from scripts.pango import Pango
 from scripts.plplot import PLplot
+from scripts.gnuplot import GnuPlot
+from scripts.samplerate import Samplerate
+from scripts.nanomsg import Nanomsg
 from scripts.roxlu import Roxlu
 
 from colorama import init, Fore, Back, Style
@@ -102,6 +106,10 @@ ins_h264bitstream = H264BitStream()
 ins_pixman = Pixman()
 ins_cairo = Cairo()
 ins_plplot = PLplot()
+ins_gnuplot = GnuPlot()
+ins_pango = Pango()
+ins_samplerate = Samplerate()
+ins_nanomsg = Nanomsg()
 ins_roxlu = Roxlu()
 
 
@@ -112,6 +120,7 @@ installers = [ins_glfw, ins_jansson, ins_jpeg, ins_tiff, ins_png, ins_zlib,
               ins_glew, ins_portaudio, ins_sndfile, ins_pkgconfig, ins_glib, ins_ffi,
               ins_gettext, ins_iconv, ins_flac, ins_boost, ins_torrent, ins_rtmp,
               ins_flvmeta, ins_h264bitstream, ins_pixman, ins_cairo, ins_plplot,
+              ins_pango, ins_gnuplot, ins_samplerate, ins_nanomsg,
               ins_roxlu]
 
 

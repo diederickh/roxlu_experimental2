@@ -14,7 +14,7 @@ class UV(Base):
         rb_git_clone(self, "git@github.com:joyent/libuv.git", self.version)
 
     def build(self):
-        if rb_is_mac():
+        if rb_is_unix():
 
             arch = "ia32" if rb_is_32bit() else "x64"
 
@@ -24,15 +24,16 @@ class UV(Base):
 
             # static lib
             cmd = (
+                "set -x",
                 "cd " +dd,
                 "if [ ! -d build/gyp ] ; then  git clone https://git.chromium.org/external/gyp.git build/gyp ; fi",
-                "./gyp_uv -Dtarget_arch=" +arch ,
+                "./gyp_uv -Dtarget_arch=" +arch +" -Dhost_arch=" +arch,
                 "make -C out BUILDTYPE=" +rb_msvc_get_build_type_string() +rb_get_make_compiler_flags(),
                 "mv out " +output_dir
                 )
 
             rb_execute_shell_commands(self, cmd)
-
+            return True
             # shared lib
             output_dir = output_dir +"_Shared"
             cmd = (
@@ -57,6 +58,15 @@ class UV(Base):
             )
             rb_execute_shell_commands(self, cmd)
 
+
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libuv.a")
+        elif rb_is_win():
+            return rb_deploy_lib_file_exists("libuv.dll") # test this!
+        else:
+            rb_red_ln("Cannot check if the lib is build on this platform")
+
     
     def deploy(self):
         if rb_is_msvc():
@@ -65,7 +75,7 @@ class UV(Base):
             rb_deploy_lib(cd +"libuv.lib")
             rb_deploy_dll(cd +"libuv.dll")
             rb_deploy_headers(dd +"/include/")
-        elif rb_is_mac():
+        elif rb_is_unix():
 
             # static and dynamic libs are build separately + clang<>gcc use different paths (gyp)
             output_dir = rb_get_download_dir(self) +rb_get_triplet() +"_" +rb_msvc_get_build_type_string()

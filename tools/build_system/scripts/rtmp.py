@@ -22,7 +22,11 @@ class Rtmp(Base):
             dd = rb_get_download_dir(self)
             env = rb_get_autotools_environment_vars()
             ef = (
+                "set -x",
                 "cd " +dd,
+                rb_get_export_cmd("XCFLAGS", rb_get_cflags()),
+                rb_get_export_cmd("XLDFLAGS", rb_get_ldflags()),
+                "make clean",
                 "make SYS=darwin"
                 )
             rb_execute_shell_commands(self, ef, env)

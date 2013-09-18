@@ -12,7 +12,7 @@ class Roxlu(Base):
         self.dependencies = ["autoconf", "automake", "libtool", "pkgconfig", "curl", "ffi", "gettext", "iconv", 
                              "glew", "glfw", "glib", "flac", "freetype", "jansson", "jpeg", "lamemp3",
                              "mysql-c-connector", "ogg", "openssl", "pcre", "png", "portaudio", "sndfile", 
-                             "speex", "theora", "tiff", "uv", "vorbis", "x264", "yasm", "zlib"]
+                             "speex", "theora", "tiff", "uv", "vorbis", "x264", "yasm", "zlib", "rtmp", "gnuplot"]
 
     def download(self):
         return True

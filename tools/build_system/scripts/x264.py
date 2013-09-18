@@ -15,12 +15,24 @@ class x264(Base):
 
     def build(self):
 
-        if rb_is_mac():
-            opts = " --enable-static "
-            rb_build_with_autotools(self, opts)
+        dbg_flag = " --enable-debug --disable-asm " if rb_is_debug() else ""
+
+        if rb_is_unix():
+            dd = rb_get_download_dir(self)
+            env_vars = rb_get_autotools_environment_vars()
+            cmd = [
+                "set -x",
+                "cd " +dd,
+                "./configure " +rb_get_configure_prefix_flag() +dbg_flag +" --disable-shared --enable-static --host=$(./config.guess | sed \"s/x86_64/i386/g\")",
+                "make clean",
+                "make install"
+                ]
+            opts = " --enable-static " +dbg_flag 
+            rb_execute_shell_commands(self, cmd, env_vars);
+            #rb_build_with_autotools(self, opts)
         elif rb_is_msvc():
 
-            dbg_flag = "--enable-debug" if rb_is_debug() else ""
+
 
             # x264 needs c99 which is not supported by vs2010/2012 yet
             # and it seems there is a bug in x264dll.c, DllMain takes a HINSTANCE, not a HANDLE for the first argument
