@@ -14,6 +14,7 @@ class UV(Base):
         rb_git_clone(self, "git@github.com:joyent/libuv.git", self.version)
 
     def build(self):
+        return True
         if rb_is_unix():
 
             arch = "ia32" if rb_is_32bit() else "x64"
@@ -67,6 +68,35 @@ class UV(Base):
         else:
             rb_red_ln("Cannot check if the lib is build on this platform")
 
+    # on mac the build file destination can be either in "Release/out", "out" or just "Release"
+    # this finds the correct one :) 
+    def get_build_file(self, filename):
+        dd = rb_get_download_dir(self)
+        output_dir = rb_get_download_dir(self) +rb_get_triplet() +"_" +rb_msvc_get_build_type_string()
+        output_dir_a = output_dir +"/" +rb_msvc_get_build_type_string() +"/"
+        output_dir_b = output_dir +"/out/" +rb_msvc_get_build_type_string() +"/";
+        output_dir_c = output_dir +"_Shared/" +rb_msvc_get_build_type_string() +"/"
+        output_dir_d = output_dir +"_Shared/out/" +rb_msvc_get_build_type_string() +"/"
+        file_a = output_dir_a +filename
+        file_b = output_dir_b +filename
+        file_c = output_dir_c +filename
+        file_d = output_dir_d +filename
+        if os.path.exists(file_a):
+            return file_a
+        elif os.path.exists(file_b):
+            return file_b
+        elif os.path.exists(file_c):
+            return file_c
+        elif os.path.exists(file_d):
+            return file_d
+        else:
+            rb_yellow_ln("Cannot find file: " +filename +" in either: " +file_a +" or " +file_b)
+            return False
+            
+    def deploy_lib_if_exists(self, filename):
+        fn = self.get_build_file(filename)
+        if fn:
+            rb_deploy_lib(fn)
     
     def deploy(self):
         if rb_is_msvc():
@@ -76,21 +106,8 @@ class UV(Base):
             rb_deploy_dll(cd +"libuv.dll")
             rb_deploy_headers(dd +"/include/")
         elif rb_is_unix():
-
-            # static and dynamic libs are build separately + clang<>gcc use different paths (gyp)
-            output_dir = rb_get_download_dir(self) +rb_get_triplet() +"_" +rb_msvc_get_build_type_string()
-            od_shared = output_dir +"_Shared"
-            od_static = output_dir
-            if rb_is_clang():
-                od_static = od_static +"/out/" +rb_msvc_get_build_type_string() +"/"
-                od_shared = od_shared +"/out/" +rb_msvc_get_build_type_string() +"/"
-            else:
-                od_static = od_static +"/" +rb_msvc_get_build_type_string() +"/" 
-                od_shared = od_shared +"/" +rb_msvc_get_build_type_string() +"/"
-
-            # And install
-            rb_deploy_lib(od_static +"libuv.a")
-            rb_deploy_lib(od_shared +"libuv.dylib")
+ 
+            self.deploy_lib_if_exists("libuv.a")
             rb_deploy_header(rb_download_get_file(self, "include/pthread-fixes.h"))
             rb_deploy_header(rb_download_get_file(self, "include/stdint-msvc2008.h"))
             rb_deploy_header(rb_download_get_file(self, "include/tree.h"))
