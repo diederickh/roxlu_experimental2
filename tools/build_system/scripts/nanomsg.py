@@ -12,24 +12,24 @@ class Nanomsg(Base):
 
     def download(self):
         rb_git_clone(self, "git@github.com:nanomsg/nanomsg.git", self.version)
-        if rb_is_unix():
-            cmd = [
-                "cd " +rb_get_download_dir(self),
-                "./autogen.sh"
-                ]
-            rb_execute_shell_commands(self, cmd, rb_get_autotools_environment_vars())
-
 
     def build(self):
         if rb_is_unix():
+            if not rb_download_file_exists(self, "configure"):
+                cmd = [
+                    "cd " +rb_get_download_dir(self),
+                    "./autogen.sh"
+                    ]
+                rb_execute_shell_commands(self, cmd, rb_get_autotools_environment_vars())
+
             rb_build_with_autotools(self)
 
     def is_build(self):
         
         if rb_is_unix():
-            return rb_install_lib_file_exists("libsamplerate.a")
+            return rb_install_lib_file_exists("libnanomsg.a")
         else:
-            rb_red_ln("@todo samplerate")
+            rb_red_ln("@todo nanomsg")
 
     def deploy(self):
 
@@ -41,7 +41,7 @@ class Nanomsg(Base):
             rb_deploy_lib(rb_install_get_lib_file("libnanomsg.a"))
             rb_deploy_headers(dir = rb_install_get_include_dir() +"nanomsg", subdir = "nanomsg")
         else:
-            rb_yellow_ln("@todo samplerate")
+            rb_yellow_ln("@todo nanomsg")
 
 
 

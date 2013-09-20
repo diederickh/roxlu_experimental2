@@ -145,6 +145,8 @@ def rb_extract(script, file, extractedDirName = None):
         f = "tar.gz"
     elif t[0] == "application/x-tar" and t[1] == "bzip2":
         f = "tar.bz2"
+    elif t[0] == "application/zip":
+        f = "zip"
     else:
         print "Unknown file type"
         print t 
@@ -155,6 +157,8 @@ def rb_extract(script, file, extractedDirName = None):
         os.system("cd " +rb_get_download_dir(script) + " && " +"tar -zxvf " +file )
     elif f == "tar.bz2":
         os.system("cd " +rb_get_download_dir(script) + " && " +"tar -jxvf " +file )
+    elif f == "zip":
+        os.system("cd " +rb_get_download_dir(script) + " && tar -xvf " +file)
     elif f == "xz":
         if rb_is_win():
             tarfile = file.replace(".xz","")
@@ -363,6 +367,9 @@ def rb_install_get_lib_file(filename):
 
 def rb_install_lib_file_exists(filename):
     return os.path.exists(os.path.normpath(rb_install_get_lib_file(filename)))
+
+def rb_install_include_file_exists(filename):
+    return os.path.exists(os.path.normpath(rb_install_get_include_file(filename)))
 
 def rb_install_get_bin_file(filename):
     return os.path.normpath(rb_install_get_bin_dir() +"/" +filename)
@@ -705,6 +712,9 @@ def rb_download_dir_copy_file_internal(script, src, dest):
 # returns a file relative to the download dir for the given script
 def rb_download_get_file(script, file):
     return rb_get_download_dir(script) +file;
+
+def rb_download_file_exists(script, file):
+    return os.path.exists(rb_get_download_dir(script)+"/"+file)
 
 # remove a directory from a script specific download dir
 # this will not remove the download dir itself; but only a 

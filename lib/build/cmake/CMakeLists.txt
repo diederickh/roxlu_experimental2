@@ -46,6 +46,9 @@
 #
 cmake_minimum_required(VERSION 2.8)
 
+option(ROXLU_32BIT "Compile roxlu as 32 bit library")
+option(ROXLU_64BIT "Compile roxlu as 64 bit library")
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 
   add_definitions(-DROXLU_DEBUG)
@@ -493,6 +496,7 @@ set(roxlu_math_sources
   ${roxlu_src_dir}/math/Vec3.cpp
   ${roxlu_src_dir}/math/Vec4.cpp
   ${roxlu_src_dir}/math/Noise.cpp
+  ${roxlu_src_dir}/math/Perlin.cpp
 )
 
 set(roxlu_lib_source_files
@@ -594,6 +598,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   endif()
 endif()
 
+message("--------------- 32bit: ${ROXLU_32BIT}  64bit: ${ROXLU_64BIT} -------- ")
+
 set(roxlu_triplet "${roxlu_platform}-${roxlu_compiler}-${roxlu_arch}")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(roxlu_triplet "${roxlu_triplet}d")
@@ -606,6 +612,7 @@ set(roxlu_extern_lib_dir  ${roxlu_extern_base_dir}lib/)
 
 message(">>>> ${roxlu_extern_include_dir}")
 roxlu_add_include_dir(${roxlu_extern_include_dir})
+include_directories(${roxlu_extern_include_dir})
 
 
 if(NOT ROXLU_PLATFORM_WIN)

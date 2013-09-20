@@ -48,6 +48,7 @@ from scripts.plplot import PLplot
 from scripts.gnuplot import GnuPlot
 from scripts.samplerate import Samplerate
 from scripts.nanomsg import Nanomsg
+from scripts.rapidxml import RapidXML
 from scripts.roxlu import Roxlu
 
 from colorama import init, Fore, Back, Style
@@ -110,6 +111,7 @@ ins_gnuplot = GnuPlot()
 ins_pango = Pango()
 ins_samplerate = Samplerate()
 ins_nanomsg = Nanomsg()
+ins_rapidxml = RapidXML()
 ins_roxlu = Roxlu()
 
 
@@ -120,7 +122,7 @@ installers = [ins_glfw, ins_jansson, ins_jpeg, ins_tiff, ins_png, ins_zlib,
               ins_glew, ins_portaudio, ins_sndfile, ins_pkgconfig, ins_glib, ins_ffi,
               ins_gettext, ins_iconv, ins_flac, ins_boost, ins_torrent, ins_rtmp,
               ins_flvmeta, ins_h264bitstream, ins_pixman, ins_cairo, ins_plplot,
-              ins_pango, ins_gnuplot, ins_samplerate, ins_nanomsg,
+              ins_pango, ins_gnuplot, ins_samplerate, ins_nanomsg, ins_rapidxml,
               ins_roxlu]
 
 
@@ -210,6 +212,7 @@ if task == TASK_BUILD:
             r.build()
             r.deploy()
 
+    rb_yellow_ln("build: " +installer.name)
     installer.build()
     installer.deploy()
 
@@ -221,6 +224,7 @@ elif task == TASK_LIST:
          #print Fore.RED +ins.name +" - " +ins.version;
 elif task == TASK_DOWNLOAD:
     for ins in installers:
+        rb_yellow_ln("download: " +ins.name)
         ins.download()
 
 
