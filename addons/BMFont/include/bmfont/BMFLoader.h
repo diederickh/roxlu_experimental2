@@ -18,7 +18,7 @@
 #include <map>
 #include <roxlu/core/Log.h>
 #include <roxlu/core/Utils.h>
-#include <rapidxml/rapidxml.hpp>
+#include <rapidxml.hpp>
 #include <bmfont/BMFTypes.h>
 #include <bmfont/BMFRenderer.h>
 

@@ -14,7 +14,6 @@ class UV(Base):
         rb_git_clone(self, "git@github.com:joyent/libuv.git", self.version)
 
     def build(self):
-        return True
         if rb_is_unix():
 
             arch = "ia32" if rb_is_32bit() else "x64"

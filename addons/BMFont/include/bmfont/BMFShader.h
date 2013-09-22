@@ -127,6 +127,7 @@ inline void BMFShader::bind() {
 
 #if defined(ROXLU_GL_CORE3)
   glBindVertexArray(vao);
+  //glBindVertexArrayAPPLE(vao);
 #else  
   glBindVertexArrayAPPLE(vao);
 #endif

@@ -58,7 +58,11 @@
 #  include "ofMain.h"
 #elif defined(ROXLU_WITH_OSX_NATIVE)
 #  define ROXLU_WITH_OPENGL
-#  include <OpenGL/gl.h>
+#  if defined(ROXLU_GL_CORE3)
+#    include <OpenGL/gl3.h>
+#  else 
+#    include <OpenGL/gl.h>
+#  endif
 #endif
 
 // FIXES (NOT NEEDED FOR GL3)
