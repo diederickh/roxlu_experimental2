@@ -5,6 +5,7 @@
 #include <roxlu/core/Log.h>
 #include <glr/Vertices.h>
 #include <glr/Vertex.h>
+#include <roxlu/opengl/GL.h>
 
 #define ERR_GL_VBO_ALREADY_SETUP "The vbo is already setup"
 #define ERR_GL_VBO_NOT_SETUP "The vbo wasn't setup properly"
