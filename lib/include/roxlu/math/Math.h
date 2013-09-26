@@ -10,6 +10,7 @@
 #include <roxlu/math/Vec3.h>
 #include <roxlu/math/Vec4.h>
 #include <roxlu/math/Noise.h>
+#include <roxlu/math/Perlin.h>
 
 using namespace roxlu;
 

@@ -100,6 +100,7 @@ namespace roxlu {
     Vec3 getNormalized() const;
     Vec3 getCrossed(const Vec3& vec);
     Vec3 getRotated(const float a, const Vec3& ax) const;
+    Vec3 getPerpendicular(); /* get a perpendicular vector based on this one. this vector doesn't have to be normalized!, based on http://lolengine.net/blog/2013/09/21/picking-orthogonal-vector-combing-coconuts */
 
     void set(float n);
     void set(float xx, float yy, float zz);
@@ -290,6 +291,14 @@ namespace roxlu {
     return *this;
   }
 
+  // - the current vector does not need to be normalized
+  // - does not normalize the output
+  // - works when the vector is non-zero
+  inline Vec3 Vec3::getPerpendicular() {
+    return abs(x) > abs(z) ? Vec3(-y, x, 0.0) : Vec3(0.0, -z, y);
+  }
+
+
   inline Vec3 Vec3::getCrossed(const Vec3& vec) {
     return Vec3(
       y * vec.z - z * vec.y
@@ -310,6 +319,7 @@ namespace roxlu {
   inline void Vec3::print() const {
     printf("%f, %f, %f\n", x, y, z);
   }
+
 
   // -----------------------------------------------------------------------------
   inline bool Vec3::operator==(const Vec3& v) const {
@@ -454,6 +464,14 @@ namespace roxlu {
     float r = 0.0;
     roxlu_dot3(a,b,r);
     return r;
+  }
+
+  inline Vec3 normalize(const Vec3& a) {
+    return a.getNormalized();
+  }
+
+  inline Vec3 perpendicular(Vec3& v) {
+    return v.getPerpendicular();
   }
 
   inline Vec3 rotate(const float angle, const Vec3& v, const Vec3& axis) {

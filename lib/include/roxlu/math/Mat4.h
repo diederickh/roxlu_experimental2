@@ -56,6 +56,8 @@ namespace roxlu {
     void rotateY(float angle);
     void rotateZ(float angle);
 
+    void lookAt(Vec3 pos, Vec3 target, Vec3 up); /* cam pos, cam target, up vec  */
+
     void scale(float s);
     void scale(float x, float y, float z);
 	
@@ -97,7 +99,7 @@ namespace roxlu {
 	
     Mat4& frustum(float l, float r, float b, float t, float n, float f);
     Mat4& frustumCenter(float w, float h, float n, float f);
-    Mat4& perspective(float fovDegrees, float aspect, float n, float f);
+    Mat4& perspective(float fovDegrees, float aspect, float n, float f); // eg. perspective(45.0f, 4.0f/3.0f, 0.01, 10.0f); 
     Mat4& ortho(float l, float r, float b, float t, float n, float f);
     Mat4& orthoCenter(float w, float h, float n, float f);
     Mat4& orthoTopLeft(float w, float h, float n, float f);
@@ -370,6 +372,30 @@ namespace roxlu {
 
   inline void Mat4::rotateZ(float angle) {
     rotate(angle, 0.0f, 0.0f, 1.0f);
+  }
+
+  inline void Mat4::lookAt(Vec3 pos, Vec3 target, Vec3 up) {
+    Vec3 d = ( target - target ).normalize();
+    Vec3 right = cross(d, up);
+    right.normalize();
+    up = cross(d, right);
+    up.normalize();
+ 
+ /*    
+    printf("--\n");
+    right.print();
+    up.print();
+    d.print();
+    */
+  
+    right.set(-1.0, 0.0, 0.0);
+    up.set(0.0, 0.0, 1.0);
+    d.set(0.0, 1.0, 0.0);
+
+    setXAxis(right);
+    setYAxis(up);
+    setZAxis(d);
+    setPosition(pos);
   }
 
   // set the billboard vectors (you can retrieve the right and up by using the inverse rotation of the view matrix, see Camera.h)

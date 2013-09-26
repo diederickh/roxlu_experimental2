@@ -20,6 +20,18 @@ void twitter_filter_cb(HTTPConnection* c, HTTPConnectionEvent event,
   }
 }
 
+void twitter_usertimeline_cb(HTTPConnection* c, HTTPConnectionEvent event,
+                             const char* data, size_t len, void* user)
+{
+  if(event == HTTP_ON_STATUS) {
+    RX_VERBOSE("HTTP status: %d", c->parser.status_code);
+  }
+  else if(event == HTTP_ON_BODY) {
+    std::string str(data, data+len);
+    printf("%s\n", str.c_str());
+  }
+}
+
 int main() {
   
   Jansson config;
@@ -49,11 +61,20 @@ int main() {
     ::exit(EXIT_FAILURE);
   }
 
-  // Track 
+
+#if 1
   TwitterStatusesFilter tw_filter;
   tw_filter.track("love,openframeworks"); // comma separated list of keywords to track
   tw.apiStatusesFilter(tw_filter, twitter_filter_cb, NULL);
-  
+#endif
+
+#if 0
+  // Follow users timeline
+  TwitterStatusesUserTimeline tl;
+  tl.count = 10;
+  tw.apiStatusesUserTimeline(tl, twitter_usertimeline_cb, NULL);
+#endif
+
   while(true) {
     tw.update();
   }

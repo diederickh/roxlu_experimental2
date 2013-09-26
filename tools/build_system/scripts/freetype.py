@@ -30,6 +30,13 @@ class FreeType(Base):
             rb_execute_shell_commands(self, cmd)
             rb_red_ln("@todo freetype build msvc");
     
+
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_lib_file_exists("libfreetype.a")
+        else:
+            rb_yellow_ln("@todo freetype")
+
     def deploy(self):
         if rb_is_mac():
             rb_deploy_lib(rb_install_get_lib_file("libfreetype.a"))

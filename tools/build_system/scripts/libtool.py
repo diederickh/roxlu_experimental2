@@ -18,11 +18,14 @@ class LibTool(Base):
                                 "libtool-" +self.version)
 
     def build(self):
-        if rb_is_mac_gcc():
+        if rb_is_mac():
             rb_build_with_autotools(self)
         elif rb_is_msvc():
             rb_red_ln("libtool is only for unices")
 
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_bin_file_exists("libtool")
 
     def deploy(self):
         if rb_is_msvc():

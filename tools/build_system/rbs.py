@@ -36,6 +36,20 @@ from scripts.ffi import FFI
 from scripts.gettext import GetText
 from scripts.iconv import Iconv
 from scripts.flac import Flac
+from scripts.boost import Boost
+from scripts.torrent import Torrent
+from scripts.rtmp import Rtmp
+from scripts.flvmeta import FLVMeta 
+from scripts.h264bitstream import H264BitStream
+from scripts.pixman import Pixman
+from scripts.cairo import Cairo
+from scripts.pango import Pango
+from scripts.plplot import PLplot
+from scripts.gnuplot import GnuPlot
+from scripts.samplerate import Samplerate
+from scripts.nanomsg import Nanomsg
+from scripts.rapidxml import RapidXML
+from scripts.roxlu import Roxlu
 
 from colorama import init, Fore, Back, Style
 init()
@@ -85,13 +99,32 @@ ins_ffi = FFI()
 ins_gettext = GetText()
 ins_iconv = Iconv()
 ins_flac = Flac()
+ins_boost = Boost()
+ins_torrent = Torrent()
+ins_rtmp = Rtmp()
+ins_flvmeta = FLVMeta()
+ins_h264bitstream = H264BitStream()
+ins_pixman = Pixman()
+ins_cairo = Cairo()
+ins_plplot = PLplot()
+ins_gnuplot = GnuPlot()
+ins_pango = Pango()
+ins_samplerate = Samplerate()
+ins_nanomsg = Nanomsg()
+ins_rapidxml = RapidXML()
+ins_roxlu = Roxlu()
+
 
 installers = [ins_glfw, ins_jansson, ins_jpeg, ins_tiff, ins_png, ins_zlib, 
               ins_openssl, ins_lamemp3, ins_yasm, ins_uv, ins_curl, ins_pcre,
               ins_ogg, ins_vorbis, ins_theora, ins_speex, ins_mysqlc,
               ins_freetype, ins_autoconf, ins_automake, ins_libtool, ins_x264,
               ins_glew, ins_portaudio, ins_sndfile, ins_pkgconfig, ins_glib, ins_ffi,
-              ins_gettext, ins_iconv, ins_flac]
+              ins_gettext, ins_iconv, ins_flac, ins_boost, ins_torrent, ins_rtmp,
+              ins_flvmeta, ins_h264bitstream, ins_pixman, ins_cairo, ins_plplot,
+              ins_pango, ins_gnuplot, ins_samplerate, ins_nanomsg, ins_rapidxml,
+              ins_roxlu]
+
 
 #installers.sort(key=lambda i:i.name)
 
@@ -179,6 +212,7 @@ if task == TASK_BUILD:
             r.build()
             r.deploy()
 
+    rb_yellow_ln("build: " +installer.name)
     installer.build()
     installer.deploy()
 
@@ -190,6 +224,7 @@ elif task == TASK_LIST:
          #print Fore.RED +ins.name +" - " +ins.version;
 elif task == TASK_DOWNLOAD:
     for ins in installers:
+        rb_yellow_ln("download: " +ins.name)
         ins.download()
 
 

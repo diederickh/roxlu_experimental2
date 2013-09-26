@@ -31,7 +31,6 @@ void Twitter::apiStatusesFilter(TwitterStatusesFilter& param, httpconnection_eve
   param.setHost("stream.twitter.com");
   param.setMethod(HTTP_METHOD_POST);
   param.setCallback(cbEvent, user);
-  RX_VERBOSE("%s", param.query_parameters.getQueryString().c_str());
   makeAPICall(param);
 }
 
@@ -39,6 +38,7 @@ void Twitter::apiStatusesFilter(TwitterStatusesFilter& param, httpconnection_eve
 void Twitter::apiStatusesUpdate(TwitterStatusesUpdate& param, httpconnection_event_callback cbEvent, void* user) {
   setDefaultParams(param);
   param.setEndPoint("/1.1/statuses/update.json");
+  param.setCallback(cbEvent, user);
   makeAPICall(param);
 }
 
@@ -48,6 +48,17 @@ void Twitter::apiStatusesUpdateWithMedia(TwitterStatusesUpdate& param, httpconne
   param.setIsSecure(true);
   param.setMethod(HTTP_METHOD_POST);
   param.setHost("upload.twitter.com");
+  param.setCallback(cbEvent, user);
+  makeAPICall(param);
+}
+
+// https://dev.twitter.com/docs/api/1.1/get/statuses/user_timeline
+void Twitter::apiStatusesUserTimeline(TwitterStatusesUserTimeline& param, httpconnection_event_callback cbEvent, void* user) {
+  param.setEndPoint("/1.1/statuses/user_timeline.json");
+  param.setIsSecure(true);
+  param.setMethod(HTTP_METHOD_GET);
+  param.setHost("api.twitter.com");
+  param.setCallback(cbEvent, user);
   makeAPICall(param);
 }
 

@@ -46,6 +46,9 @@
 #
 cmake_minimum_required(VERSION 2.8)
 
+option(ROXLU_32BIT "Compile roxlu as 32 bit library")
+option(ROXLU_64BIT "Compile roxlu as 64 bit library")
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 
   add_definitions(-DROXLU_DEBUG)
@@ -209,6 +212,32 @@ macro(roxlu_app_add_source_file file)
   roxlu_add_source_file(${roxlu_app_src_dir}/${file})
 endmacro(roxlu_app_add_source_file)
 
+# Add a list of file at once; use quotes: roxlu_app_add_source_files("${my_list_with_source_files}")
+macro(roxlu_app_add_source_files files) 
+    foreach(file_name in ${files})
+      if(EXISTS ${file_name})
+        roxlu_add_source_file(${file_name})
+      endif()
+    endforeach()
+endmacro()
+
+# Add a with paths to libraries you want to link with, call with quotes around the libs variable: roxlu_app_add_libs("${mylibs}")
+macro(roxlu_app_add_libs libs)
+  foreach(lib_name in ${libs})
+    if(EXISTS ${lib_name})
+      roxlu_add_lib(${lib_name})
+    endif()
+  endforeach()
+endmacro()
+
+# add a dependency project (handy if you generate some dylibs/dlls) that
+# your application needs. calling roxlu_app_add_dependency which basically
+# just call add_dependencies() on your application target. See cmake doc
+# for more info
+macro(roxlu_app_add_dependency dep)
+  list(APPEND roxlu_app_dependencies ${dep})
+endmacro()
+
 
 # function(JOIN VALUES GLUE OUTPUT)
 #   string (REPLACE ";" "${GLUE}" _TMP_STR "${VALUES}")
@@ -242,6 +271,12 @@ macro(roxlu_install_app)
       # ---
 
       add_executable(${roxlu_app_name} ${roxlu_source_files} ${roxlu_lib_source_files})
+
+      # make sure that the dependencies have been compiled before linking!
+      if(${roxlu_app_dependencies})
+        add_dependencies(${roxlu_app_name} ${roxlu_app_dependencies})
+      endif()
+
     endif()
 
 
@@ -461,6 +496,7 @@ set(roxlu_math_sources
   ${roxlu_src_dir}/math/Vec3.cpp
   ${roxlu_src_dir}/math/Vec4.cpp
   ${roxlu_src_dir}/math/Noise.cpp
+  ${roxlu_src_dir}/math/Perlin.cpp
 )
 
 set(roxlu_lib_source_files
@@ -549,6 +585,7 @@ if(ROXLU_64BIT)
   set(roxlu_arch "x86_64")
 endif(ROXLU_64BIT)
 
+
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(roxlu_compiler "clang")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -560,6 +597,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(roxlu_compiler "vs2012")
   endif()
 endif()
+
+message("--------------- 32bit: ${ROXLU_32BIT}  64bit: ${ROXLU_64BIT} -------- ")
 
 set(roxlu_triplet "${roxlu_platform}-${roxlu_compiler}-${roxlu_arch}")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -573,6 +612,7 @@ set(roxlu_extern_lib_dir  ${roxlu_extern_base_dir}lib/)
 
 message(">>>> ${roxlu_extern_include_dir}")
 roxlu_add_include_dir(${roxlu_extern_include_dir})
+include_directories(${roxlu_extern_include_dir})
 
 
 if(NOT ROXLU_PLATFORM_WIN)

@@ -838,6 +838,8 @@ namespace roxlu {
 
   }
 
+
+
   void Mat4::translate(float x, float y, float z) {
     Mat4 mat = translation(x,y,z);
     *this *= mat;

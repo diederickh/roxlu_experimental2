@@ -72,4 +72,20 @@ class TwitterStatusesFilter : public TwitterCallParams {
   void follow(std::string followString);
 };
 
+//-------------------------------------------------------------------------------
+class TwitterStatusesUserTimeline : public TwitterCallParams {
+ public:
+  TwitterStatusesUserTimeline();
+
+  std::string user_id;
+  std::string screen_name;
+  std::string since_id;
+  int count;
+  std::string max_id;
+  bool trim_user;
+  bool exclude_replies;
+  bool contributor_details;
+  bool include_rts;
+};
+
 #endif

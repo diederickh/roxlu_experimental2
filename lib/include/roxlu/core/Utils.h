@@ -67,6 +67,7 @@ inline uint32_t rx_string_id(std::string str) {
 
 
 static std::string rx_get_file_ext(std::string filepath);
+static bool rx_file_exists(std::string filepath);
 
 // as suggested: http://stackoverflow.com/questions/4100657/problem-with-my-clamp-macro
 template <typename T> 
@@ -348,6 +349,32 @@ static std::string rx_to_exe_path(std::string filename) {
   return rx_get_exe_path() +filename;
 }
 
+// read a binary file 
+static bool rx_load_file(std::string filepath, bool datapath, std::vector<char>& result) {
+
+  if(datapath) {
+    filepath = rx_to_data_path(filepath);
+  }
+
+  if(!rx_file_exists(filepath)) {
+    RX_ERROR("Cannot find file: %s", filepath.c_str());
+    return false;
+  }
+
+  std::ifstream ifs(filepath.c_str(), std::ios::in | std::ios::binary);
+  if(!ifs.is_open()) {
+    RX_ERROR("Cannot open the file: %s", filepath.c_str());
+    return false;
+  }
+
+  result.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+
+  ifs.close();
+
+  return true;
+}
+
+// read a text file line by line
 static std::string rx_get_file_contents(std::string filepath, bool datapath = false) {
   if(datapath) {
     filepath = rx_to_data_path(filepath);

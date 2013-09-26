@@ -91,3 +91,16 @@ int main() {
 };
 
 ````
+
+_Basic signal handler w/o the wrapper class_
+````c++
+#include <signal.h>
+
+void my_handler(int sig) {
+     printf("signal handler called.\n");
+}
+
+int main() {
+    signal(SIGINT, my_handler);
+}
+````

@@ -23,6 +23,10 @@ class AutoConf(Base):
         elif rb_is_msvc():
             rb_red_ln("autoconf is only for unices")
 
+    def is_build(self):
+        if rb_is_unix():
+            return rb_install_bin_file_exists("autoconf")
+
 
     def deploy(self):
         if rb_is_msvc():
