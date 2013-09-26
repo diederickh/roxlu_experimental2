@@ -29,7 +29,10 @@ class Vorbis(Base):
             cmd = (
                 "call " +rb_msvc_get_setvars(), 
                 "cd " +dd +"/win32/VS" +("2010" if rb_is_vs2010() else "2012"),
-                "msbuild.exe vorbis_dynamic.sln /t:libvorbis " +rb_msvc_get_msbuild_type_flag() +rb_msvc_get_toolset_flag()
+                "msbuild.exe vorbis_dynamic.sln /t:libvorbis " +rb_msvc_get_msbuild_type_flag() +rb_msvc_get_toolset_flag(),
+                "msbuild.exe vorbis_dynamic.sln /t:libvorbisfile " +rb_msvc_get_msbuild_type_flag() +rb_msvc_get_toolset_flag(),
+                "msbuild.exe vorbis_dynamic.sln /t:vorbisdec " +rb_msvc_get_msbuild_type_flag() +rb_msvc_get_toolset_flag(),
+                "msbuild.exe vorbis_dynamic.sln /t:vorbisenc " +rb_msvc_get_msbuild_type_flag() +rb_msvc_get_toolset_flag()
             )
 
             rb_execute_shell_commands(self, cmd)

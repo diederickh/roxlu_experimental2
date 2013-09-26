@@ -27,7 +27,7 @@ class x264(Base):
             dd = rb_get_download_dir(self)
             cmd = (
                 "cd " +rb_mingw_windows_path_to_cygwin_path(dd),
-                "./configure " +rb_get_configure_prefix_flag() +" --host=i686-w64-mingw32 --disable-cli --enable-shared " +dbg_flag +" --extra-ldflags=\"-Wl,--output-def=libx264.def\"",
+                "./configure " +rb_mingw_get_configure_prefix_flag() +" --cross-prefix=i686-w64-mingw32- --disable-cli --enable-shared " +dbg_flag +" --enable-win32thread --extra-ldflags=\"-Wl,--output-def=libx264.def\"",
                 "sed \"s/HANDLE hinstDLL/HINSTANCE hinstDLL/g\" x264dll.c > x264dll.c.new",
                 "mv x264dll.c x264dll.orig",
                 "mv x264dll.c.new x264dll.c",

@@ -29,12 +29,16 @@ class PNG(Base):
             rb_msvc_copy_custom_project(self, dd +"/projects/" +rb_get_compiler_shortname()) 
 
             # copy the default config
+            rb_msvc_setup_build_environment()
             rb_download_dir_copy_file_internal(self, "scripts/pnglibconf.h.prebuilt", "pnglibconf.h")
 
             # build through command line
-            cmd = (
+            cmd = rb_msvc_get_environment_vars()
+            cmd += (
                 "cd " +dd +"/projects/" +rb_get_compiler_shortname(),
                 "call " +rb_msvc_get_setvars(), 
+                "SET CL=/I" +rb_deploy_get_include_dir() +" ",
+                "SET LINK=" +rb_deploy_get_lib_file("zdll.lib"),
                 "msbuild.exe vstudio.sln /t:libpng " +rb_msvc_get_msbuild_type_flag()
             )
             rb_execute_shell_commands(self, cmd)

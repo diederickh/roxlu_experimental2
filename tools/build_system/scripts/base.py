@@ -212,7 +212,7 @@ def rb_check_windows_setup():
 
     nasm_path = rb_get_tools_path() +"\\nasm\\"
     perl_path = rb_get_tools_path() +"\\perl\\"
-    mingw_path = rb_get_tools_path() +"\\mingw\\"
+    cygwin_path = rb_get_tools_path() +"\\cygwin\\"
 
     error = False
     if not os.path.exists(nasm_path):
@@ -221,9 +221,9 @@ def rb_check_windows_setup():
     if not os.path.exists(perl_path):
         error = True
         rb_red_ln("Make sure to install perl (from ActiveState) in tools\\perl\\")
-    if not os.path.exists(mingw_path):
+    if not os.path.exists(cygwin_path):
         error = True
-        rb_red_ln("Make sure to install MinGW to tools\\mingw\\")
+        rb_red_ln("Make sure to install cygwin to tools\\cygwin\\")
 
     if not error:
         perl_version = subprocess.check_output(["perl", "--version"])
@@ -505,6 +505,9 @@ def rb_get_configure_flags():
 
 def rb_get_configure_prefix_flag():
    return " --prefix=\"" +rb_install_get_dir() +"\" "
+
+def rb_mingw_get_configure_prefix_flag():
+   return " --prefix=\"" +rb_mingw_windows_path_to_cygwin_path(rb_install_get_dir()) +"\" "
 
 # sometimes a make file does not use the environment CC and CXX flags; you can use this too, see the glew script
 def rb_get_make_compiler_flags():
@@ -918,7 +921,7 @@ def rb_msvc_setup_build_environment():
 # experimental; it seems the INCLUDE is not always used (didn't work when compiling flac)
 def rb_msvc_get_environment_vars():
     env = (
-        "SET CL=/I" +rb_deploy_get_include_dir() +" /Z7",
+        "SET CL=/I" +rb_deploy_get_include_dir() +" ",
 #        "SET INCLUDE=" +rb_deploy_get_include_dir() +";%INCLUDE%"
         )
     return env
