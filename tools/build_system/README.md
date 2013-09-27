@@ -5,7 +5,7 @@
 - Install Windows 7/8 Development SDK
 - Install Perl ( http://www.activestate.com/activeperl ) from activestate into build_system\tools\perl\ or somewhere into the PATH dirs 
 - Install Nasm ( http://www.nasm.us/pub/nasm/releasebuilds/?C=M;O=D ) into build_system\tools\nasm\  (2.10.09), 
-- Install cygwin ( 
+- Install Cygwin ( http://www.cygwin.com/install ) into build_system\tools\cygwin
   - devel > autoconf 2.69.2 
   - devel > automake 1.14.1
   - devel > gcc

@@ -5,6 +5,8 @@ import sys
 import mimetypes
 import shutil
 import subprocess
+import urllib
+import zipfile
 
 from colorama import init, Fore, Back, Style
 init()
@@ -65,8 +67,12 @@ class Base(object):
 # download a source file into the download dir for the given script
 def rb_download(script, url, outfile):
     rb_yellow_ln("Downloading: " +url)
-    os.system("curl -L " +url +" -o " +rb_get_download_dir(script) +outfile)
+    rb_download_with_curl(url, rb_get_download_dir(script) +outfile)
     rb_green_ln("--------")
+
+def rb_download_with_curl(url, outfile):
+    rb_set_environment_vars()
+    os.system("curl -k -L " +url +" -o " +outfile)    
 
 def rb_move_file(src, dest):
     #if os.path.exists(src) and not os.path.exists(dest):
@@ -145,6 +151,10 @@ def rb_extract(script, file, extractedDirName = None):
         f = "tar.gz"
     elif t[0] == "application/x-tar" and t[1] == "bzip2":
         f = "tar.bz2"
+    elif t[0] == "application/x-tar" and t[1] == "xz":
+        f = "tar.xz"
+    elif t[0] == "application/x-zip-compressed":
+        f = "zip"
     elif t[0] == "application/zip":
         f = "zip"
     else:
@@ -152,7 +162,7 @@ def rb_extract(script, file, extractedDirName = None):
         print t 
         sys.exit(2)
 
-
+    """
     if f == "tar.gz":
         os.system("cd " +rb_get_download_dir(script) + " && " +"tar -zxvf " +file )
     elif f == "tar.bz2":
@@ -169,11 +179,67 @@ def rb_extract(script, file, extractedDirName = None):
                 )
             rb_mingw_execute_shell_commands(script, cmd)
         
+    """
+
+    rb_extract_file(rb_get_download_dir(script), file, f)
 
     if not extractedDirName == None:
         extracted_dir = rb_get_download_dir(script) +extractedDirName;
         if os.path.exists(extracted_dir):
-            os.system("mv " +extracted_dir +"/* " +rb_get_download_dir(script) +"")
+            if rb_is_unix():
+                os.system("mv " +extracted_dir +"/* " +rb_get_download_dir(script) +"")
+            elif rb_is_win():
+                os.system("cd " +extracted_dir +" && xcopy . .. /H /S")
+
+def rb_extract_file(dir, filename, ext):
+    if rb_is_unix():
+        rb_yellow_ln("FIX rb_extract_file on unices")
+    elif rb_is_win():
+        if ext == "tar.gz":
+            os.system("cd " +dir +" && 7z.exe x " +filename +" -o" +dir)
+            fparts = filename.split(".")
+            fparts.pop()
+            fname = ".".join(fparts)
+            os.system("cd " +dir +" && 7z.exe x " +fname +" -o"+dir)
+        elif ext == "tar.bz2":
+            rb_yellow_ln("cd " +dir +" && 7z.exe x " +filename)
+            os.system("cd " +dir +" && 7z.exe x " +filename +" -o"+dir)
+            fparts = filename.split(".")
+            fparts.pop()
+            fname = ".".join(fparts)
+            os.system("cd " +dir +" && 7z.exe x " +fname +" -o"+dir)
+        elif ext == "tar.xz":
+            rb_yellow_ln("cd " +dir +" && 7z.exe x " +filename)
+            os.system("cd " +dir +" && 7z.exe x " +filename +" -o"+dir)
+            fparts = filename.split(".")
+            fparts.pop()
+            fname = ".".join(fparts)
+            os.system("cd " +dir +" && 7z.exe x " +fname +" -o"+dir)
+        elif ext == "zip":
+            rb_yellow_ln("cd " +dir +" && 7z.exe x " +filename)
+            os.system("cd " +dir +" && 7z.exe x " +filename +" -o"+dir)
+
+            """
+            cmd = (
+                "cd " +rb_get_download_dir(script),
+                "xz -d " +file,
+                "tar -xvf " +tarfile
+                )
+            rb_mingw_execute_shell_commands(script, cmd)
+            """
+
+
+def rb_extract_get_command(ext):
+    if rb_is_unix():
+        if ext == "tar.gz":
+            return "tar -zxvf"
+        elif ext == "tar.bz2":
+            return "tar -jxvf"
+        elif ext == "zip":
+            return "tar -xvf"
+        elif "xz":
+            rb_yellow_ln("We do not yet have a extract command for xz files on unices.");
+            sys.exit(2)
 
 # clone the given git url into the download directory of the script when it doesnt exit
 # eg. rb_git_clone(self, "git@github.com/glfw/glfw.git", "asdfwefsdfafasfasdfsdf")
@@ -216,6 +282,9 @@ def rb_check_windows_setup():
     if not rb_is_win():
         return True
 
+    rb_check_windows_curl()
+    rb_check_windows_7zip()
+ 
     nasm_path = rb_get_tools_path() +"\\nasm\\"
     perl_path = rb_get_tools_path() +"\\perl\\"
     cygwin_path = rb_get_tools_path() +"\\cygwin\\"
@@ -233,12 +302,88 @@ def rb_check_windows_setup():
 
     if not error:
         perl_version = subprocess.check_output(["perl", "--version"])
+        rb_yellow_ln(perl_version)
         if "activestate" not in perl_version.lower():
             rb_red_ln("You must install the ActiveState perl version")
             error = True
 
     if error:
         sys.exit()
+
+
+# download, extract and copy 7zip on windows
+def rb_check_windows_7zip():
+    
+    if not rb_is_win():
+        return False
+                          
+    win_utils_dir = os.path.normpath(rb_get_tools_path() +"\\utils\\") +"\\"
+    zip_dir = win_utils_dir +"7zip.msi"                   
+    zip_exdir = win_utils_dir +"\\extract\\Files\\7-zip\\"
+    
+    if os.path.exists(os.path.normpath(win_utils_dir+"\\7z.exe")):
+        return True
+
+    rb_download_with_curl("http://downloads.sourceforge.net/sevenzip/7z920-x64.msi", zip_dir)
+    rb_yellow_ln("msiexec.exe /a \"" +zip_dir +"\" /qb TARGETDIR=\"" +win_utils_dir +"\\extract\\")
+    os.system("msiexec.exe /a \"" +zip_dir +"\" /qb TARGETDIR=\"" +win_utils_dir +"\\extract\\\"") 
+
+    zip_exdir = win_utils_dir +"\\extract\\Files\\7-zip\\"
+    rb_copy_file(zip_exdir +"\\7z.exe", os.path.normpath(win_utils_dir) +"\\7z.exe")
+    rb_copy_file(zip_exdir +"\\7z.dll", os.path.normpath(win_utils_dir) +"\\7z.dll")
+    rb_copy_file(zip_exdir +"\\7-zip.dll", os.path.normpath(win_utils_dir) +"\\7-zip.dll")
+
+    shutil.rmtree(win_utils_dir +"\\extract")
+    os.remove(zip_dir)
+
+# download, extract and copy curl on windows 
+# - we have implemented this function be we do not use this curl yet! -
+def rb_check_windows_curl():
+
+    if not rb_is_win():
+        return False
+
+    win_utils_dir = os.path.normpath(rb_get_tools_path() +"\\utils\\") +"\\"
+    curl_dest_file = win_utils_dir +"\\curl.zip";
+    curl_url = "http://curl.haxx.se/gknw.net/7.32.0/dist-w32/curl-7.32.0-rtmp-ssh2-ssl-sspi-zlib-idn-static-bin-w32.zip";
+    curl_dir = win_utils_dir +"\\curl-7.32.0-rtmp-ssh2-ssl-sspi-zlib-idn-static-bin-w32\\"
+
+    if os.path.exists(os.path.normpath(win_utils_dir) +"\\curl.exe"):
+        return True
+
+    rb_ensure_dir(win_utils_dir)
+    rb_download_with_python(curl_url, curl_dest_file)
+    rb_extract_zip_with_python(curl_dest_file, win_utils_dir)
+
+    rb_copy_file(curl_dir +"\\curl.exe", os.path.normpath(win_utils_dir) +"\\curl.exe")
+    rb_copy_file(curl_dir +"\\libcurl.dll", os.path.normpath(win_utils_dir) +"\\libcurl.dll")
+    rb_copy_file(curl_dir +"\\libeay32.dll", os.path.normpath(win_utils_dir) +"\\libeay32.dll")
+    rb_copy_file(curl_dir +"\\libidn-11.dll", os.path.normpath(win_utils_dir) +"\\libidn-11.dll")
+    rb_copy_file(curl_dir +"\\ssleay32.dll", os.path.normpath(win_utils_dir) +"\\ssleay32.dll")
+    
+    shutil.rmtree(curl_dir)
+    os.remove(curl_dest_file)
+
+def rb_download_with_python(url, dest):
+    if not os.path.exists(dest):
+        rb_yellow_ln("Downloading: " +url)
+        urllib.urlretrieve(url, dest)
+    else:
+        rb_yellow_ln("Downloaded: " +url)
+
+def rb_extract_zip_with_python(file, dest_dir):
+    zfile = zipfile.ZipFile(file)
+    for name in zfile.namelist():
+        (dir_name, file_name) = os.path.split(name)
+
+        new_dir = dest_dir + '/' + dir_name
+        if not os.path.exists(os.path.normpath(new_dir)):
+            os.mkdir(os.path.normpath(new_dir))
+        if not file_name == '':
+            fd = open(os.path.normpath(dest_dir + '/' + name), 'wb')
+            fd.write(zfile.read(name))
+            fd.close()
+    zfile.close()
 
 # returns the compiler duolet
 def rb_compiler_string(comp): 
@@ -644,13 +789,14 @@ def rb_set_environment_vars():
     if rb_get_os_shortname() == "win":
         env_paths = (
             os.path.normpath(rb_get_tools_path()+"perl/perl/bin/"),
-            os.path.normpath(rb_get_tools_path()+"nasm/")
+            os.path.normpath(rb_get_tools_path()+"nasm/"),
+            os.path.normpath(rb_get_tools_path()+"utils/")
         )
 
         env_includes = (
             os.path.normpath(rb_deploy_get_dir() +"include/")
         )
-
+        
         os.environ["PATH"] += ";" +";".join(env_paths)
         os.environ["INCLUDE"] += ";" +";".join(env_includes)
         rb_green_ln(os.environ["PATH"])
@@ -690,6 +836,10 @@ def rb_copy_to_download_dir(script, src, destdir = None):
         rb_red_ln(s)
         shutil.copyfile(s, d)
         rb_yellow_ln("Copied " +d)
+
+def rb_copy_file(src, dest):
+    rb_yellow_ln("from: " +src)
+    shutil.copyfile(src, dest)
 
 # this will copy one directory from a downlaod dir the one given (all inside
 # the same dir of the given script's directory. Quite some libraries provide
@@ -862,8 +1012,8 @@ def rb_gray_ln(s):
     rb_gray(s +"\n")
 
 def rb_print_usage():
-    rb_green("rbs.py -a <arch:32,64> -t <task:list,build,download> -c <compiler-shortname:vs2010,vs2012,gcc,clang> -b<build_type:release,debug> -s<scriptname>\n")
-
+    rb_green("rbs.py -a <arch:32,64> -t <task:list,build,download> -c <compiler-shortname:vs2010,vs2012,gcc,clang> -b<build_type:release,debug> -s<scriptname0,scriptname1,etc..>\n")
+    rb_green("example: python rbs.py -t build -c vs2010 -a 32 -b release -s uv,x264,glfw")
 
 
 # Finding compilers

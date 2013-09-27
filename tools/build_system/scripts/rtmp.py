@@ -18,8 +18,9 @@ class Rtmp(Base):
         rb_git_clone(self, "git://git.ffmpeg.org/rtmpdump")
 
     def build(self):
+        dd = rb_get_download_dir(self)
+
         if rb_is_unix():
-            dd = rb_get_download_dir(self)
             env = rb_get_autotools_environment_vars()
             ef = (
                 "set -x",
@@ -30,6 +31,12 @@ class Rtmp(Base):
                 "make SYS=darwin"
                 )
             rb_execute_shell_commands(self, ef, env)
+
+        elif rb_is_win():
+            rb_copy_to_download_dir(self, "CMakeLists.txt")
+            rb_cmake_configure(self)
+            rb_cmake_build(self)
+
         return True
 
     def is_build(self):
@@ -41,8 +48,10 @@ class Rtmp(Base):
 
         if rb_is_unix():
             rb_deploy_lib(rb_download_get_file(self, "librtmp/librtmp.a"))
-
-        rb_deploy_headers(dir = rb_get_download_dir(self) +"librtmp/", subdir = "librtmp")
+            rb_deploy_headers(dir = rb_get_download_dir(self) +"librtmp/", subdir = "librtmp")
+        elif rb_is_win():
+            rb_deploy_headers(dir = rb_install_get_include_dir() +"librtmp/", subdir = "librtmp")
+            rb_deploy_lib(rb_install_get_lib_file("librtmp.lib"))
         return True
                 
         

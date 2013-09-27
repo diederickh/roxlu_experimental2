@@ -49,6 +49,7 @@ from scripts.gnuplot import GnuPlot
 from scripts.samplerate import Samplerate
 from scripts.nanomsg import Nanomsg
 from scripts.rapidxml import RapidXML
+from scripts.libyuv import LibYUV
 from scripts.roxlu import Roxlu
 
 from colorama import init, Fore, Back, Style
@@ -112,6 +113,7 @@ ins_pango = Pango()
 ins_samplerate = Samplerate()
 ins_nanomsg = Nanomsg()
 ins_rapidxml = RapidXML()
+ins_libyuv = LibYUV()
 ins_roxlu = Roxlu()
 
 
@@ -123,6 +125,7 @@ installers = [ins_glfw, ins_jansson, ins_jpeg, ins_tiff, ins_png, ins_zlib,
               ins_gettext, ins_iconv, ins_flac, ins_boost, ins_torrent, ins_rtmp,
               ins_flvmeta, ins_h264bitstream, ins_pixman, ins_cairo, ins_plplot,
               ins_pango, ins_gnuplot, ins_samplerate, ins_nanomsg, ins_rapidxml,
+              ins_libyuv,
               ins_roxlu]
 
 
@@ -138,6 +141,8 @@ task = None             # what task do you want to perform
 
 # On windows systems we need to check if perl and nasm have been installed
 rb_check_windows_setup()
+#sys.exit(2)
+
 
 # Getopts
 try:
@@ -154,9 +159,20 @@ for opt, arg in opts:
         elif arg == "64":
             Base.arch = Base.ARCH_M64
     elif opt in ("-s", "--script"):
+        provided_scripts = arg.split(",")
+        found_installers = []
+        #rb_yellow_ln(provided_scripts)
+        for ins in installers:
+            for asked_installer in provided_scripts:
+                if ins.name == asked_installer:
+                    found_installers.append(ins)
+        """
+        print found_installers
+        sys.exit(2)
         for ins in installers:
             if ins.name == arg:
                 installer = ins
+        """
     elif opt in ("-t", "--task"):
         if arg == "list":
             task = TASK_LIST
@@ -198,11 +214,33 @@ if task == None:
     sys.exit(2)
 
 if task == TASK_BUILD:
+    if len(found_installers) == 0:
+        rb_yellow_ln("No installers found")
+        sys.exit(2)
+
+    """
     if not installer:
         print "No installer found"
         sys.exit(2)
+    """
+
+    for i in found_installers:
+        rs = []
+        rb_solve_dependencies(i, installers, rs)
+        rs = rs[::-1]
+        for r in rs:
+            if not r.is_build():
+                rb_red_ln("Found dependency: "+r.name)
+                r.build()
+                r.deploy()
+
+        i.build()
+        rb_yellow_ln("build: " +i.name)
+        i.build()
+        i.deploy()
 
     # build dependencies
+    """
     rs = []
     rb_solve_dependencies(installer, installers, rs)
     rs = rs[::-1]
@@ -211,10 +249,12 @@ if task == TASK_BUILD:
             rb_red_ln("Found dependency: "+r.name)
             r.build()
             r.deploy()
-
+    """
+    """
     rb_yellow_ln("build: " +installer.name)
     installer.build()
     installer.deploy()
+    """
 
 elif task == TASK_LIST:
     print ""
