@@ -42,6 +42,8 @@ class Rtmp(Base):
     def is_build(self):
         if rb_is_unix():
             return rb_deploy_lib_file_exists("librtmp.a")
+        elif rb_is_win:
+            return rb_deploy_lib_file_exists("librtmp.lib")
         return False
     
     def deploy(self):
