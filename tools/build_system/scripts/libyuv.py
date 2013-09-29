@@ -9,14 +9,14 @@ class LibYUV(Base):
         self.compilers = [Base.COMPILER_WIN_MSVC2010]
         self.arch = [Base.ARCH_M32]
         self.dependencies = []
-        self.info = "experimental - current libyuv trunk fails to build on win8"
+        self.info = ""
 
     def download(self):
         rb_svn_checkout(self, "http://libyuv.googlecode.com/svn/trunk")
-        rb_copy_to_download_dir(self, "CMakeLists.txt")
+
 
     def build(self):
-        return True
+        rb_copy_to_download_dir(self, "CMakeLists.txt")
         rb_cmake_configure(self)
         rb_cmake_build(self)
 

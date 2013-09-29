@@ -50,6 +50,13 @@ class UV(Base):
 
         elif rb_is_msvc():
             dd = rb_get_download_dir(self)
+
+            # libuv checks this environment variable that will compile with vs11 instead of vs10, therefore
+            # we have to unset it.
+            vs11comtools_copy = os.environ["VS110COMNTOOLS"];
+            if rb_is_vs2010():
+                os.environ["VS110COMNTOOLS"] = "";
+
             cmd = (
                 "cd " +dd,
                 "call " +rb_msvc_get_setvars(),
@@ -57,7 +64,10 @@ class UV(Base):
                 "msbuild.exe uv.sln /t:libuv " +rb_msvc_get_msbuild_type_flag()
             )
             rb_execute_shell_commands(self, cmd)
-
+            
+            # and set back...
+            if rb_is_vs2010():
+                os.environ["VS110COMNTOOLS"] = vs11comtools_copy;
 
     def is_build(self):
         if rb_is_unix():

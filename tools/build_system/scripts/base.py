@@ -958,6 +958,15 @@ def rb_deploy_headers(dir, files = None, subdir = None):
     else:
         rb_red_ln("Headers dir not found " +dir)
 
+def rb_deploy_sources(dir, subdir): 
+    d = rb_deploy_get_dir() +"src/" +subdir
+    rb_ensure_dir(d)
+    if rb_is_win():
+        rb_yellow_ln("xcopy /y " +os.path.normpath(dir +"/*.*") +" " +os.path.normpath(d) +"/")
+        os.system("xcopy /y " +os.path.normpath(dir +"/*.*") +" " +os.path.normpath(d) )
+    else:
+        rb_red_ln("+++++++++++++++ rb_deploy_sources not yet implemented for unices! ++++++++++++")
+
 
 def rb_deploy_create_headers_dir(dir):
     dd = rb_deploy_get_dir() +"/include/" +dir

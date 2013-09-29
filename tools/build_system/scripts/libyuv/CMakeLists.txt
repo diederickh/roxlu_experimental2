@@ -63,7 +63,7 @@ set(ly_header_files
   ${ly_inc_dir}/libyuv/scale_argb.h
   ${ly_inc_dir}/libyuv/version.h
   ${ly_inc_dir}/libyuv/video_common.h
-# ${ly_inc_dir}/libyuv/mjpeg_decoder.h
+  ${ly_inc_dir}/libyuv/mjpeg_decoder.h
 )
 
 include_directories(${ly_inc_dir})
