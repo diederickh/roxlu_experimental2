@@ -965,8 +965,8 @@ def rb_deploy_sources(dir, subdir):
         rb_yellow_ln("xcopy /y " +os.path.normpath(dir +"/*.*") +" " +os.path.normpath(d) +"/")
         os.system("xcopy /y " +os.path.normpath(dir +"/*.*") +" " +os.path.normpath(d) )
     else:
-        rb_red_ln("+++++++++++++++ rb_deploy_sources not yet implemented for unices! ++++++++++++")
-
+        rb_yellow_ln("cp -r " +os.path.normpath(dir +"/*.*") +" " +os.path.normpath(d))
+        os.system("cp -r " +os.path.normpath(dir +"/*.*") +" " +os.path.normpath(d));
 
 def rb_deploy_create_headers_dir(dir):
     dd = rb_deploy_get_dir() +"/include/" +dir
@@ -977,8 +977,14 @@ def rb_deploy_get_lib_file(filename):
     return rb_deploy_get_lib_dir() +filename;
 
 def rb_deploy_lib_file_exists(filename):
-    rb_yellow_ln(os.path.normpath(rb_deploy_get_lib_file(filename)))
     return os.path.exists(os.path.normpath(rb_deploy_get_lib_file(filename)))
+
+def rb_deploy_src_file_exists(filename):
+    return os.path.exists(os.path.normpath(rb_deploy_get_src_file(filename)))
+
+def rb_deploy_get_src_file(filename):
+    d = rb_deploty_get_dir() +"src/" +filename
+    return d
 
 # Console output
 # ---------------------------------------------------------------------------

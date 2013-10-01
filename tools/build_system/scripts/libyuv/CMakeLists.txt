@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 2.8)
 set(ly_base_dir ${CMAKE_CURRENT_LIST_DIR})
 set(ly_src_dir ${ly_base_dir}/source/)
 set(ly_inc_dir ${ly_base_dir}/include)
-set(ly_lib_name "libyuv")
+set(ly_lib_name "yuv")
 
 set(ly_source_files
   ${ly_src_dir}/compare.cc

@@ -15,7 +15,6 @@ class GLXW(Base):
         rb_git_clone(self, "git@github.com:rikusalminen/glxw.git")
 
     def build(self):
-        return True
         dd = rb_get_download_dir(self)
         cmd = (
             "cd " +dd,
@@ -26,13 +25,12 @@ class GLXW(Base):
         return True
 
     def is_build(self):
-        return False
+        return rb_deploy_src_file_exists("src/GLXW/glxw.c")
 
     def deploy(self):
-        if rb_is_win():
-            rb_deploy_headers(dir = rb_get_download_dir(self) +"/include/GL/", subdir = "GL")
-            rb_deploy_headers(dir = rb_get_download_dir(self) +"/include/GLXW/", subdir = "GLXW")
-            rb_deploy_sources(dir = rb_get_download_dir(self) +"/src/", subdir = "GLXW")
+        rb_deploy_headers(dir = rb_get_download_dir(self) +"/include/GL/", subdir = "GL")
+        rb_deploy_headers(dir = rb_get_download_dir(self) +"/include/GLXW/", subdir = "GLXW")
+        rb_deploy_sources(dir = rb_get_download_dir(self) +"/src/", subdir = "GLXW")
 
 
 

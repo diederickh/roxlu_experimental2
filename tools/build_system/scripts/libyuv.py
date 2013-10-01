@@ -30,7 +30,8 @@ class LibYUV(Base):
             rb_deploy_headers(dir = rb_install_get_include_dir() +"libyuv/", subdir = "libyuv")
             rb_deploy_lib(rb_install_get_lib_file("libyuv.lib"))
         else:
-            rb_yellow_ln("@todo libyuv - deploy on !win")
+            rb_deploy_headers(dir = rb_install_get_include_dir() +"libyuv/", subdir = "libyuv")
+            rb_deploy_lib(rb_install_get_lib_file("libyuv.a"))
 
 
 
