@@ -18,20 +18,20 @@ class Faac(Base):
                                 "faac-" +self.version)
 
     def build(self):
-        """
-        dd = rb_get_download_dir(self)
-        cmd = (
-            "cd " +dd,
-            "python glxw_gen.py"
-            )
-        rb_execute_shell_commands(self, cmd)
-        """
-        return True
+        if rb_is_unix():
+            rb_build_with_autotools(self)
+        else:
+            rb_yellow_ln("@todo build faac on !unix")
 
     def is_build(self):
         return True
 
     def deploy(self):
+        if rb_is_unix():
+            rb_deploy_lib(rb_install_get_lib_file("libfaac.a"))
+            rb_deploy_headers(dir = rb_install_get_include_dir() +"/faac.h");
+        else:
+            rb_yellow_ln("@todo deploy faac on !unix")
         return True
 
 
