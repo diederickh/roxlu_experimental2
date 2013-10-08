@@ -18,6 +18,7 @@ class Rtmp(Base):
         rb_git_clone(self, "git://git.ffmpeg.org/rtmpdump")
 
     def build(self):
+        return 
         dd = rb_get_download_dir(self)
 
         if rb_is_unix():
@@ -50,9 +51,9 @@ class Rtmp(Base):
 
         if rb_is_unix():
             rb_deploy_lib(rb_download_get_file(self, "librtmp/librtmp.a"))
-            rb_deploy_headers(dir = rb_get_download_dir(self) +"librtmp/", subdir = "librtmp")
+            rb_deploy_headers(dir = rb_get_download_dir(self) +"librtmp/*.h", subdir = "librtmp")
         elif rb_is_win():
-            rb_deploy_headers(dir = rb_install_get_include_dir() +"librtmp/", subdir = "librtmp")
+            rb_deploy_headers(dir = rb_install_get_include_dir() +"librtmp/*.h", subdir = "librtmp")
             rb_deploy_lib(rb_install_get_lib_file("librtmp.lib"))
         return True
                 

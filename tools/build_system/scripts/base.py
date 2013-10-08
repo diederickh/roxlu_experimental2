@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import urllib
 import zipfile
+import ntpath
 
 from colorama import init, Fore, Back, Style
 init()
@@ -153,6 +154,8 @@ def rb_extract(script, file, extractedDirName = None):
         f = "tar.bz2"
     elif t[0] == "application/x-tar" and t[1] == "xz":
         f = "tar.xz"
+    elif t[0] == "application/x-xz":
+        f = "tar.xz"
     elif t[0] == "application/x-zip-compressed":
         f = "zip"
     elif t[0] == "application/zip":
@@ -161,25 +164,6 @@ def rb_extract(script, file, extractedDirName = None):
         print "Unknown file type"
         print t 
         sys.exit(2)
-
-    """
-    if f == "tar.gz":
-        os.system("cd " +rb_get_download_dir(script) + " && " +"tar -zxvf " +file )
-    elif f == "tar.bz2":
-        os.system("cd " +rb_get_download_dir(script) + " && " +"tar -jxvf " +file )
-    elif f == "zip":
-        os.system("cd " +rb_get_download_dir(script) + " && tar -xvf " +file)
-    elif f == "xz":
-        if rb_is_win():
-            tarfile = file.replace(".xz","")
-            cmd = (
-                "cd " +rb_get_download_dir(script),
-                "xz -d " +file,
-                "tar -xvf " +tarfile
-                )
-            rb_mingw_execute_shell_commands(script, cmd)
-        
-    """
 
     rb_extract_file(rb_get_download_dir(script), file, f)
 
@@ -193,7 +177,16 @@ def rb_extract(script, file, extractedDirName = None):
 
 def rb_extract_file(dir, filename, ext):
     if rb_is_unix():
-        rb_yellow_ln("FIX rb_extract_file on unices")
+        if ext == "tar.gz":
+            os.system("cd " +dir + " && " +"tar -zxvf " +filename )
+        elif ext == "tar.bz2":
+            os.system("cd " +dir + " && " +"tar -jxvf " +filename )
+        elif ext == "zip":
+            os.system("cd " +dir + " && tar -xvf " +filename)
+        elif ext == "xz":
+            os.system("cd " +dir +" && tar -xJvf " +filename)
+        else:
+            rb_red_ln("Unhandled file type: " +ext)
     elif rb_is_win():
         if ext == "tar.gz":
             os.system("cd " +dir +" && 7z.exe x " +filename +" -o" +dir)
@@ -930,10 +923,17 @@ def rb_deploy_header(hdr, subdir = None):
 
 # copy all .h files from the given directory
 # eg. rb_deploy_headers("/some/path/")
+# eg. rb_deploy_headers(dir = rb_get_download_dir(self) +"librtmp/*.h", subdir = "librtmp")
 # eg. rb_deploy_headers("/some/path/openssl/", subdir="openssl")  // copy to the deploy dir: include/openssl/
 # eg. rb_deploy_headers(dir = rb_install_get_include_dir() +"ogg", subdir = "ogg")
 def rb_deploy_headers(dir, files = None, subdir = None):    
-    if os.path.exists(dir):
+
+    
+    copydir = os.path.dirname(dir);
+    pathname = ntpath.basename(dir)
+    pathname = "/" if len(pathname) == 0 else "/" +pathname
+    
+    if os.path.exists(copydir):
 
         sd = ""
         if not subdir == None:
@@ -949,7 +949,7 @@ def rb_deploy_headers(dir, files = None, subdir = None):
                 rb_yellow_ln("xcopy /y " +os.path.normpath(dir +"\*.h") +"  " +os.path.normpath(d))
                 rb_yellow_ln(dir)
             else:
-                os.system("cp -r " +os.path.normpath(dir) +"/ " +os.path.normpath(d)) 
+                os.system("cp -r " +os.path.normpath(copydir) +pathname +" " +os.path.normpath(d)) 
 
         else:
             for f in files:

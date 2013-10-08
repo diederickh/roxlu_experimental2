@@ -19,15 +19,21 @@ class x264(Base):
         dbg_flag = " --enable-debug --disable-asm " if rb_is_debug() else ""
 
         if rb_is_unix():
+
+            host = ""
+            if rb_is_32bit():
+                host = " --host=$(./config.guess | sed \"s/x86_64/i386/g\")"
+
             dd = rb_get_download_dir(self)
             env_vars = rb_get_autotools_environment_vars()
             cmd = [
                 "set -x",
                 "cd " +dd,
-                "./configure " +rb_get_configure_prefix_flag() +dbg_flag +" --disable-shared --enable-static --host=$(./config.guess | sed \"s/x86_64/i386/g\")",
+                "./configure " +rb_get_configure_prefix_flag() +dbg_flag +" --enable-static " +host,
                 "make clean",
                 "make install"
                 ]
+
             opts = " --enable-static " +dbg_flag 
             rb_execute_shell_commands(self, cmd, env_vars);
             #rb_build_with_autotools(self, opts)

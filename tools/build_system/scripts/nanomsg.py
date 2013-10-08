@@ -8,7 +8,10 @@ class Nanomsg(Base):
         self.version = ""
         self.compilers = [Base.COMPILER_MAC_GCC, Base.COMPILER_MAC_CLANG, Base.COMPILER_WIN_MSVC2010]
         self.arch = [Base.ARCH_M32, Base.ARCH_M64]
-        self.dependencies = []
+        if rb_is_unix():
+            self.dependencies = ["automake", "autoconf", "libtool"];
+        else:
+            self.dependencies = []
 
     def download(self):
         rb_git_clone(self, "git@github.com:nanomsg/nanomsg.git", self.version)
