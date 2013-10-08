@@ -51,6 +51,7 @@ from scripts.nanomsg import Nanomsg
 from scripts.rapidxml import RapidXML
 from scripts.libyuv import LibYUV
 from scripts.glxw import GLXW
+from scripts.faac import Faac
 from scripts.roxlu import Roxlu
 
 from colorama import init, Fore, Back, Style
@@ -116,6 +117,7 @@ ins_nanomsg = Nanomsg()
 ins_rapidxml = RapidXML()
 ins_libyuv = LibYUV()
 ins_glxw = GLXW()
+ins_faac = Faac()
 ins_roxlu = Roxlu()
 
 
@@ -127,7 +129,7 @@ installers = [ins_glfw, ins_jansson, ins_jpeg, ins_tiff, ins_png, ins_zlib,
               ins_gettext, ins_iconv, ins_flac, ins_boost, ins_torrent, ins_rtmp,
               ins_flvmeta, ins_h264bitstream, ins_pixman, ins_cairo, ins_plplot,
               ins_pango, ins_gnuplot, ins_samplerate, ins_nanomsg, ins_rapidxml,
-              ins_libyuv, ins_glxw,
+              ins_libyuv, ins_glxw, ins_faac,
               ins_roxlu]
 
 
