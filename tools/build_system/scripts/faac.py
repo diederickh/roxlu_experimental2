@@ -30,6 +30,7 @@ class Faac(Base):
         if rb_is_unix():
             rb_deploy_lib(rb_install_get_lib_file("libfaac.a"))
             rb_deploy_headers(dir = rb_install_get_include_dir() +"/faac.h");
+            rb_deploy_headers(dir = rb_install_get_include_dir() +"/faaccfg.h");
         else:
             rb_yellow_ln("@todo deploy faac on !unix")
         return True

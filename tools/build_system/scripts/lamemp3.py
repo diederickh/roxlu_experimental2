@@ -44,7 +44,7 @@ class LameMP3(Base):
             rb_deploy_lib(rb_install_get_lib_file("libmp3lame.a"))
             rb_deploy_lib(rb_install_get_lib_file("libmp3lame.dylib"))
             rb_deploy_lib(rb_install_get_lib_file("libmp3lame.0.dylib"))
-            rb_deploy_headers(dir = rb_install_get_include_dir() +"lame", subdir = "lame")
+            rb_deploy_headers(dir = rb_install_get_include_dir() +"lame")
 
 
             

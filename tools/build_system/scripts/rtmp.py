@@ -18,7 +18,6 @@ class Rtmp(Base):
         rb_git_clone(self, "git://git.ffmpeg.org/rtmpdump")
 
     def build(self):
-        return 
         dd = rb_get_download_dir(self)
 
         if rb_is_unix():
